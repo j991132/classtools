@@ -36,7 +36,7 @@ class _LogInState extends State<LogIn> {
           IconButton(icon: Icon(Icons.search), onPressed: () {})
         ],
       ),
-      //입력하는 부분을 제외한 화면을 탭하면, 키보드 사라지게 GestureDetector 사용
+      // 입력하는 부분을 제외한 화면을 탭하면, 키보드 사라지게 GestureDetector 사용
       body: GestureDetector(
         onTap: () {
           FocusScope.of(context).unfocus();
