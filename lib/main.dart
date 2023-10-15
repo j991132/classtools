@@ -1,8 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // 에러방지 코딩셰프 매운맛 26강 참고
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -61,73 +62,73 @@ class _LogInState extends State<LogIn> {
               ),
               Form(
                   child: Theme(
-                    data: ThemeData(
-                        primaryColor: Colors.grey,
-                        inputDecorationTheme: InputDecorationTheme(
-                            labelStyle: TextStyle(color: Colors.teal, fontSize: 15.0))),
-                    child: Container(
-                        padding: EdgeInsets.all(40.0),
-                        child: Builder(builder: (context) {
-                          return Column(
-                            children: [
-                              TextField(
-                                controller: controller,
-                                autofocus: true,
-                                decoration: InputDecoration(labelText: '학교이름'),
-                                keyboardType: TextInputType.text,
-                              ),
-                              TextField(
-                                controller: controller2,
-                                decoration:
-                                InputDecoration(labelText: '방번호'),
-                                keyboardType: TextInputType.number,
-                                // obscureText: true, // 비밀번호 안보이도록 하는 것
-                              ),
-                              TextField(
-                                controller: controller3,
-                                decoration:
-                                InputDecoration(labelText: '모둠이름'),
-                                keyboardType: TextInputType.text,
-                                // obscureText: true, // 비밀번호 안보이도록 하는 것
-                              ),
-                              SizedBox(
-                                height: 40.0,
-                              ),
-                              ButtonTheme(
-                                  minWidth: 100.0,
-                                  height: 50.0,
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      if (controller.text == 'mei@hello.com' &&
-                                          controller2.text == '1234') {
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (BuildContext context) =>
-                                                    NextPage()));
-                                      }
-                                      else if (controller.text == 'mei@hello.com' && controller2.text != '1234') {
-                                        showSnackBar(context, Text('Wrong password'));
-                                      }
-                                      else if (controller.text != 'mei@hello.com' && controller2.text == '1234') {
-                                        showSnackBar(context, Text('Wrong email'));
-                                      }
-                                      else {
-                                        showSnackBar(context, Text('Check your info again'));
-                                      }
-                                    },
-                                    child: Icon(
-                                      Icons.arrow_forward,
-                                      color: Colors.white,
-                                      size: 35.0,
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.orangeAccent),
-                                  ))
-                            ],
-                          );
-                        })),
-                  ))
+                data: ThemeData(
+                    primaryColor: Colors.grey,
+                    inputDecorationTheme: InputDecorationTheme(
+                        labelStyle:
+                            TextStyle(color: Colors.teal, fontSize: 15.0))),
+                child: Container(
+                    padding: EdgeInsets.all(40.0),
+                    child: Builder(builder: (context) {
+                      return Column(
+                        children: [
+                          TextField(
+                            controller: controller,
+                            autofocus: true,
+                            decoration: InputDecoration(labelText: '학교이름'),
+                            keyboardType: TextInputType.text,
+                          ),
+                          TextField(
+                            controller: controller2,
+                            decoration: InputDecoration(labelText: '방번호'),
+                            keyboardType: TextInputType.number,
+                            // obscureText: true, // 비밀번호 안보이도록 하는 것
+                          ),
+                          TextField(
+                            controller: controller3,
+                            decoration: InputDecoration(labelText: '모둠이름'),
+                            keyboardType: TextInputType.text,
+                            // obscureText: true, // 비밀번호 안보이도록 하는 것
+                          ),
+                          SizedBox(
+                            height: 40.0,
+                          ),
+                          ButtonTheme(
+                              minWidth: 100.0,
+                              height: 50.0,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  if (controller.text == '1' &&
+                                      controller2.text == '2') {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (BuildContext context) =>
+                                                QuizBuzzer()));
+                                  } else if (controller.text == '1' &&
+                                      controller2.text != '2') {
+                                    showSnackBar(
+                                        context, Text('Wrong password'));
+                                  } else if (controller.text != '1' &&
+                                      controller2.text == '2') {
+                                    showSnackBar(context, Text('Wrong email'));
+                                  } else {
+                                    showSnackBar(
+                                        context, Text('Check your info again'));
+                                  }
+                                },
+                                child: Icon(
+                                  Icons.arrow_forward,
+                                  color: Colors.white,
+                                  size: 35.0,
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orangeAccent),
+                              ))
+                        ],
+                      );
+                    })),
+              ))
             ],
           ),
         ),
@@ -147,11 +148,45 @@ void showSnackBar(BuildContext context, Text text) {
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
-class NextPage extends StatelessWidget {
-  const NextPage({Key? key}) : super(key: key);
+class QuizBuzzer extends StatefulWidget {
+  const QuizBuzzer({Key? key}) : super(key: key);
+
+  @override
+  State<QuizBuzzer> createState() => _QuizBuzzerState();
+}
+
+class _QuizBuzzerState extends State<QuizBuzzer> {
+  CollectionReference product =
+      FirebaseFirestore.instance.collection('classname');
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('퀴즈부저'),
+      ),
+      body: StreamBuilder(
+        stream: product.snapshots(),
+        builder: (BuildContext context,
+            AsyncSnapshot<QuerySnapshot> streamSnapshot) {
+          if (streamSnapshot.hasData) {
+            return ListView.builder(
+              itemCount: streamSnapshot.data!.docs.length,
+              itemBuilder: (context, index) {
+                final DocumentSnapshot documentSnapshot =
+                    streamSnapshot.data!.docs[index];
+                return Card(
+                  child: ListTile(
+                    title: Text(documentSnapshot['name']),
+                    subtitle: Text(documentSnapshot['price']),
+                  ),
+                );
+              },
+            );
+          }
+          return CircularProgressIndicator();
+        },
+      ),
+    );
   }
 }
