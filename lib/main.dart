@@ -31,6 +31,11 @@ class _LogInState extends State<LogIn> {
   TextEditingController controller = TextEditingController();
   TextEditingController controller2 = TextEditingController();
   TextEditingController controller3 = TextEditingController();
+  late CollectionReference collection;
+  Future<void> _confirmCollection(String classname) async {
+    CollectionReference collection =
+        FirebaseFirestore.instance.collection(classname);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,14 +102,19 @@ class _LogInState extends State<LogIn> {
                               minWidth: 100.0,
                               height: 50.0,
                               child: ElevatedButton(
-                                onPressed: () {
-                                  if (controller.text == '1' &&
+                                onPressed: () async {
+                                  _confirmCollection(controller.text+controller2.text);
+                                  if (collection.id.isEmpty){
+                                    showSnackBar(
+                                        context, Text('Wrong'+collection.id));
+                                  }
+                          /*       if (controller.text == '1' &&
                                       controller2.text == '2') {
                                     Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                             builder: (BuildContext context) =>
-                                                QuizBuzzer()));
+                                                Producttest()));
                                   } else if (controller.text == '1' &&
                                       controller2.text != '2') {
                                     showSnackBar(
@@ -116,6 +126,8 @@ class _LogInState extends State<LogIn> {
                                     showSnackBar(
                                         context, Text('Check your info again'));
                                   }
+
+                           */
                                 },
                                 child: Icon(
                                   Icons.arrow_forward,
@@ -148,16 +160,129 @@ void showSnackBar(BuildContext context, Text text) {
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
-class QuizBuzzer extends StatefulWidget {
-  const QuizBuzzer({Key? key}) : super(key: key);
+class Producttest extends StatefulWidget {
+  const Producttest({Key? key}) : super(key: key);
 
   @override
-  State<QuizBuzzer> createState() => _QuizBuzzerState();
+  State<Producttest> createState() => _ProducttestState();
 }
 
-class _QuizBuzzerState extends State<QuizBuzzer> {
+class _ProducttestState extends State<Producttest> {
   CollectionReference product =
       FirebaseFirestore.instance.collection('classname');
+
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController priceController = TextEditingController();
+
+  Future<void> _update(DocumentSnapshot documentSnapshot) async {
+    nameController.text = documentSnapshot['name'];
+    priceController.text = documentSnapshot['price'];
+
+    await showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      builder: (BuildContext context) {
+        return SizedBox(
+          child: Padding(
+            padding: EdgeInsets.only(
+                top: 20,
+                left: 20,
+                right: 20,
+                bottom: MediaQuery.of(context)
+                    .viewInsets
+                    .bottom // 키보드가 올라왔을대 키보드 위에 창이 위치함
+                ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(labelText: 'Name'),
+                ),
+                TextField(
+                  controller: priceController,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(labelText: 'Price'),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final String name = nameController.text;
+                    final String price = priceController.text;
+                    await product
+                        .doc(documentSnapshot.id) //현재 도큐먼트 인덱스 아이디 전달
+                        .update({"name": name, "price": price});
+                    nameController.text = "";
+                    priceController.text = "";
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Update'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _create() async {
+    await showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      builder: (BuildContext context) {
+        return SizedBox(
+          child: Padding(
+            padding: EdgeInsets.only(
+                top: 20,
+                left: 20,
+                right: 20,
+                bottom: MediaQuery.of(context)
+                    .viewInsets
+                    .bottom // 키보드가 올라왔을대 키보드 위에 창이 위치함
+                ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(labelText: 'Name'),
+                ),
+                TextField(
+                  controller: priceController,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(labelText: 'Price'),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final String name = nameController.text;
+                    final String price = priceController.text;
+                    await product.add({'name': name, 'price': price});
+
+                    nameController.text = "";
+                    priceController.text = "";
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Update'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _delete(String productId) async {
+    await product.doc(productId).delete();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -176,16 +301,44 @@ class _QuizBuzzerState extends State<QuizBuzzer> {
                 final DocumentSnapshot documentSnapshot =
                     streamSnapshot.data!.docs[index];
                 return Card(
+                  margin:
+                      EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
                   child: ListTile(
                     title: Text(documentSnapshot['name']),
                     subtitle: Text(documentSnapshot['price']),
+                    trailing: SizedBox(
+                      width: 100,
+                      child: Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              _update(documentSnapshot);
+                            },
+                            icon: Icon(Icons.edit),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              _delete(documentSnapshot.id);
+                            },
+                            icon: Icon(Icons.delete),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 );
               },
             );
           }
-          return CircularProgressIndicator();
+          return Center(child: CircularProgressIndicator());
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.blue,
+        onPressed: () {
+          _create();
+        },
+        child: Icon(Icons.add),
       ),
     );
   }
