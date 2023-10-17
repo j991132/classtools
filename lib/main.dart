@@ -33,20 +33,23 @@ class _LogInState extends State<LogIn> {
   TextEditingController controller3 = TextEditingController();
   var result;
   final db = FirebaseFirestore.instance;
-  getData(String collectionname) async{
+
+  //컬렉션 이름확인 메서드
+  confirmcollection(String collectionname) async{
     result =  await db.collection(collectionname).doc('connect').get();
+    print(collectionname);
     print(result.data());
-    if(result != null){
-      Navigator.push(
+    if(result.data() != null){
+      await Navigator.push(
           context,
           MaterialPageRoute(
               builder: (BuildContext context) =>
-                  Producttest()));
+                  QuizBuzzer(controller.text+controller2.text, controller3.text)));
     }else {
       showSnackBar(
           context, Text('학교이름과 방번호를 다시 살펴보세요'));
     }
-  }
+  } // 컬렉션이름 확인 메서드 끝
   // late CollectionReference collection;
 
   // Future<void> _confirmCollection(String classname) async {
@@ -120,8 +123,16 @@ class _LogInState extends State<LogIn> {
                               height: 50.0,
                               child: ElevatedButton(
                                 onPressed: () {
-                                  getData(controller.text+controller2.text);
-
+                                  if(controller3.text.contains("t")){
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (BuildContext context) =>
+                                                teacherPage()));
+                                  }else {
+                                    confirmcollection(
+                                        controller.text + controller2.text);
+                                  }
                           /*       if (controller.text == '1' &&
                                       controller2.text == '2') {
                                     Navigator.push(
@@ -172,6 +183,102 @@ void showSnackBar(BuildContext context, Text text) {
 // Find the ScaffoldMessenger in the widget tree
 // and use it to show a SnackBar.
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}
+class teacherPage extends StatefulWidget {
+  const teacherPage({Key? key}) : super(key: key);
+
+  @override
+  State<teacherPage> createState() => _teacherPageState();
+}
+
+class _teacherPageState extends State<teacherPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+        title: Text('선생님 페이지'),
+    )
+    );
+}}
+
+class QuizBuzzer extends StatefulWidget {
+  String collectionname='';
+  String teamname='';
+   QuizBuzzer(this.collectionname, this.teamname, {Key? key}) : super(key: key);
+
+  @override
+  State<QuizBuzzer> createState() => _QuizBuzzerState();
+
+}
+
+class _QuizBuzzerState extends State<QuizBuzzer> {
+  late CollectionReference product;
+  // CollectionReference product =
+  // FirebaseFirestore.instance.collection('classname');
+
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController priceController = TextEditingController();
+
+
+  @override
+  Widget build(BuildContext context) {
+    product = FirebaseFirestore.instance.collection('${widget.collectionname}');
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('퀴즈부저'),
+      ),
+      body: StreamBuilder(
+        stream: product.snapshots(),
+        builder: (BuildContext context,
+            AsyncSnapshot<QuerySnapshot> streamSnapshot) {
+          if (streamSnapshot.hasData) {
+            return ListView.builder(
+              itemCount: streamSnapshot.data!.docs.length,
+              itemBuilder: (context, index) {
+                final DocumentSnapshot documentSnapshot =
+                streamSnapshot.data!.docs[index];
+                return Card(
+                  margin:
+                  EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
+                  child: ListTile(
+                    title: Text(documentSnapshot['name']),
+                    subtitle: Text(documentSnapshot['price']),
+                    trailing: SizedBox(
+                      width: 100,
+                      child: Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {
+
+                            },
+                            icon: Icon(Icons.edit),
+                          ),
+                          IconButton(
+                            onPressed: () {
+
+                            },
+                            icon: Icon(Icons.delete),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          }
+          return Center(child: CircularProgressIndicator());
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.blue,
+        onPressed: () {
+
+        },
+        child: Icon(Icons.add),
+      ),
+    );
+  }
 }
 
 class Producttest extends StatefulWidget {
