@@ -31,11 +31,28 @@ class _LogInState extends State<LogIn> {
   TextEditingController controller = TextEditingController();
   TextEditingController controller2 = TextEditingController();
   TextEditingController controller3 = TextEditingController();
-  late CollectionReference collection;
-  Future<void> _confirmCollection(String classname) async {
-    CollectionReference collection =
-        FirebaseFirestore.instance.collection(classname);
+  var result;
+  final db = FirebaseFirestore.instance;
+  getData(String collectionname) async{
+    result =  await db.collection(collectionname).doc('connect').get();
+    print(result.data());
+    if(result != null){
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (BuildContext context) =>
+                  Producttest()));
+    }else {
+      showSnackBar(
+          context, Text('학교이름과 방번호를 다시 살펴보세요'));
+    }
   }
+  // late CollectionReference collection;
+
+  // Future<void> _confirmCollection(String classname) async {
+  //   CollectionReference collection =
+  //       FirebaseFirestore.instance.collection(classname);
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -102,12 +119,9 @@ class _LogInState extends State<LogIn> {
                               minWidth: 100.0,
                               height: 50.0,
                               child: ElevatedButton(
-                                onPressed: () async {
-                                  _confirmCollection(controller.text+controller2.text);
-                                  if (collection.id.isEmpty){
-                                    showSnackBar(
-                                        context, Text('Wrong'+collection.id));
-                                  }
+                                onPressed: () {
+                                  getData(controller.text+controller2.text);
+
                           /*       if (controller.text == '1' &&
                                       controller2.text == '2') {
                                     Navigator.push(
