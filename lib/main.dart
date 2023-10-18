@@ -128,7 +128,7 @@ class _LogInState extends State<LogIn> {
                                         context,
                                         MaterialPageRoute(
                                             builder: (BuildContext context) =>
-                                                teacherPage()));
+                                                teacherPage(controller.text+controller2.text, controller3.text)));
                                   }else {
                                     confirmcollection(
                                         controller.text + controller2.text);
@@ -185,19 +185,66 @@ void showSnackBar(BuildContext context, Text text) {
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 class teacherPage extends StatefulWidget {
-  const teacherPage({Key? key}) : super(key: key);
+  String collectionname='';
+  String teamname='';
+  teacherPage(this.collectionname, this.teamname, {Key? key}) : super(key: key);
 
   @override
   State<teacherPage> createState() => _teacherPageState();
 }
 
 class _teacherPageState extends State<teacherPage> {
+  late CollectionReference product;
   @override
   Widget build(BuildContext context) {
+    product = FirebaseFirestore.instance.collection('${widget.collectionname}').doc('connect').collection('teams');
     return Scaffold(
         appBar: AppBar(
         title: Text('선생님 페이지'),
-    )
+    ),
+      body: StreamBuilder(
+        stream: product.snapshots(),
+        builder: (BuildContext context,
+            AsyncSnapshot<QuerySnapshot> streamSnapshot) {
+          if (streamSnapshot.hasData) {
+            return ListView.builder(
+              itemCount: streamSnapshot.data!.docs.length,
+              itemBuilder: (context, index) {
+                final DocumentSnapshot documentSnapshot =
+                streamSnapshot.data!.docs[index];
+                return Card(
+                  margin:
+                  EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
+                  child: ListTile(
+                    title: Text(documentSnapshot['teamname']),
+
+                    trailing: SizedBox(
+                      width: 100,
+                      child: Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {
+
+                            },
+                            icon: Icon(Icons.edit),
+                          ),
+                          IconButton(
+                            onPressed: () {
+
+                            },
+                            icon: Icon(Icons.delete),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          }
+          return Center(child: CircularProgressIndicator());
+        },
+      ),
     );
 }}
 
