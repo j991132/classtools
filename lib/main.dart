@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // 에러방지 코딩셰프 매운맛 26강 참고
@@ -188,21 +189,34 @@ void showPopup(context, String teamname) {
       builder: (context) {
         return Dialog(
           child: Container(
-            width: MediaQuery.of(context).size.width * 0.7,
+            width: MediaQuery.of(context).size.width * 0.9,
             height: 380,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
               color: Colors.white,
             ),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Text(
-                  teamname,
-                  style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.redAccent),
-                ),
+                AutoSizeText(
+                teamname,
+                style: TextStyle(fontSize: 100, color: Colors.redAccent, fontWeight: FontWeight.bold),
+
+                // Set minFontSize as 18
+                maxFontSize: 200,
+
+                // Set maxLines as 4
+                maxLines: 1,
+
+                // Set overflow as TextOverflow.ellipsis
+                overflow: TextOverflow.ellipsis),
+                // Text(
+                //   teamname,
+                //   style: TextStyle(
+                //       fontSize: 50,
+                //       fontWeight: FontWeight.bold,
+                //       color: Colors.redAccent),
+                // ),
                 ElevatedButton.icon(
                   onPressed: () {
                     Navigator.pop(context);
@@ -250,10 +264,23 @@ class _teacherPageState extends State<teacherPage> {
               itemBuilder: (context, index) {
                 final DocumentSnapshot documentSnapshot =
                     streamSnapshot.data!.docs[index];
-                debugPrint('인덱스 번호' +
-                    index.toString() +
-                    '텍스트내용' +
-                    documentSnapshot['teamname']);
+                if(streamSnapshot.data!.docs.length == 1){
+                  //아래 콜백은 무조건 빌드가 끝난다음에 실행될 수 있도록 하는 장치 - 이게 없으면 빌드가 안끝났는데 팝업을 빌드하려고 해서 에러가 난다
+                  WidgetsBinding.instance!.addPostFrameCallback((_) {
+                    showPopup(context,
+                        streamSnapshot.data!.docs[0]['teamname']);
+                  });
+                }
+                else {
+                    debugPrint('인덱스 번호' +
+                        index.toString() +
+                        '텍스트내용' +
+                        documentSnapshot['teamname']);
+                  }
+
+
+
+
                 //아래 콜백은 무조건 빌드가 끝난다음에 실행될 수 있도록 하는 장치 - 이게 없으면 빌드가 안끝났는데 팝업을 빌드하려고 해서 에러가 난다
                 //  WidgetsBinding.instance!.addPostFrameCallback((_) {
                 //    showPopup(context, streamSnapshot.data!.docs[0]['teamname']);
@@ -295,61 +322,34 @@ class QuizBuzzer extends StatefulWidget {
 class _QuizBuzzerState extends State<QuizBuzzer> {
   late CollectionReference product;
 
-  // CollectionReference product =
-  // FirebaseFirestore.instance.collection('classname');
+  Future<void> buzzerPush(String teamname) async {
+    await product.add({'teamname': teamname, 'time': Timestamp.now()});
+  }
 
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController priceController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    product = FirebaseFirestore.instance.collection('${widget.collectionname}');
+    product = FirebaseFirestore.instance
+        .collection('${widget.collectionname}')
+        .doc('connect')
+        .collection('teams');
     return Scaffold(
       appBar: AppBar(
         title: Text('퀴즈부저'),
       ),
-      body: StreamBuilder(
-        stream: product.snapshots(),
-        builder: (BuildContext context,
-            AsyncSnapshot<QuerySnapshot> streamSnapshot) {
-          if (streamSnapshot.hasData) {
-            return ListView.builder(
-              itemCount: streamSnapshot.data!.docs.length,
-              itemBuilder: (context, index) {
-                final DocumentSnapshot documentSnapshot =
-                    streamSnapshot.data!.docs[index];
-                return Card(
-                  margin:
-                      EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
-                  child: ListTile(
-                    title: Text(documentSnapshot['name']),
-                    subtitle: Text(documentSnapshot['price']),
-                    trailing: SizedBox(
-                      width: 100,
-                      child: Row(
-                        children: [
-                          IconButton(
-                            onPressed: () {},
-                            icon: Icon(Icons.edit),
-                          ),
-                          IconButton(
-                            onPressed: () {},
-                            icon: Icon(Icons.delete),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
-          }
-          return Center(child: CircularProgressIndicator());
-        },
-      ),
+      // body: StreamBuilder(
+      //   stream: product.snapshots(),
+      //   builder: (BuildContext context,
+      //       AsyncSnapshot<QuerySnapshot> streamSnapshot) {
+      //
+      //     return Center(child: CircularProgressIndicator());
+      //   },
+      // ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blue,
-        onPressed: () {},
+        onPressed: () {
+          buzzerPush('${widget.teamname}');
+        },
         child: Icon(Icons.add),
       ),
     );
