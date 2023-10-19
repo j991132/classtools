@@ -198,18 +198,20 @@ void showPopup(context, String teamname) {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                AutoSizeText(
-                teamname,
-                style: TextStyle(fontSize: 100, color: Colors.redAccent, fontWeight: FontWeight.bold),
+                AutoSizeText(teamname,
+                    style: TextStyle(
+                        fontSize: 100,
+                        color: Colors.redAccent,
+                        fontWeight: FontWeight.bold),
 
-                // Set minFontSize as 18
-                maxFontSize: 200,
+                    // Set minFontSize as 18
+                    maxFontSize: 200,
 
-                // Set maxLines as 4
-                maxLines: 1,
+                    // Set maxLines as 4
+                    maxLines: 1,
 
-                // Set overflow as TextOverflow.ellipsis
-                overflow: TextOverflow.ellipsis),
+                    // Set overflow as TextOverflow.ellipsis
+                    overflow: TextOverflow.ellipsis),
                 // Text(
                 //   teamname,
                 //   style: TextStyle(
@@ -264,22 +266,18 @@ class _teacherPageState extends State<teacherPage> {
               itemBuilder: (context, index) {
                 final DocumentSnapshot documentSnapshot =
                     streamSnapshot.data!.docs[index];
-                if(streamSnapshot.data!.docs.length == 1){
+                if (streamSnapshot.data!.docs.length == 1) {
                   //아래 콜백은 무조건 빌드가 끝난다음에 실행될 수 있도록 하는 장치 - 이게 없으면 빌드가 안끝났는데 팝업을 빌드하려고 해서 에러가 난다
                   WidgetsBinding.instance!.addPostFrameCallback((_) {
-                    showPopup(context,
-                        streamSnapshot.data!.docs[0]['teamname']);
+                    showPopup(
+                        context, streamSnapshot.data!.docs[0]['teamname']);
                   });
+                } else {
+                  debugPrint('인덱스 번호' +
+                      index.toString() +
+                      '텍스트내용' +
+                      documentSnapshot['teamname']);
                 }
-                else {
-                    debugPrint('인덱스 번호' +
-                        index.toString() +
-                        '텍스트내용' +
-                        documentSnapshot['teamname']);
-                  }
-
-
-
 
                 //아래 콜백은 무조건 빌드가 끝난다음에 실행될 수 있도록 하는 장치 - 이게 없으면 빌드가 안끝났는데 팝업을 빌드하려고 해서 에러가 난다
                 //  WidgetsBinding.instance!.addPostFrameCallback((_) {
@@ -298,9 +296,7 @@ class _teacherPageState extends State<teacherPage> {
                 );
                 showPopup(context, documentSnapshot['teamname'].toString());
               },
-
             );
-
           }
           return Center(child: CircularProgressIndicator());
         },
@@ -326,7 +322,6 @@ class _QuizBuzzerState extends State<QuizBuzzer> {
     await product.add({'teamname': teamname, 'time': Timestamp.now()});
   }
 
-
   @override
   Widget build(BuildContext context) {
     product = FirebaseFirestore.instance
@@ -346,28 +341,32 @@ class _QuizBuzzerState extends State<QuizBuzzer> {
       //   },
       // ),
       body: Container(
-        width: MediaQuery.of(context).size.width,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            InkWell(
-            onTap: (){
-      buzzerPush('${widget.teamname}');
-      },
-        child: Image(
-          image: AssetImage('images/button.png'),
-          width: 170.0,
-        ),
-            )],
-        )
-
-
-
-
-        ),
-
-
+          width: MediaQuery.of(context).size.width,
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                IconButton(
+                    onPressed: () {
+                      buzzerPush('${widget.teamname}');
+                    },
+                    icon: Image.asset(
+                      'images/button.png',
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                ),
+                      InkWell(
+                      onTap: (){
+                buzzerPush('${widget.teamname}');
+                },
+                  child: Image(
+                    image: AssetImage('images/button.png'),
+                    width: 170.0,
+                  ),
+                      )],
+              ])),
     );
   }
 }
