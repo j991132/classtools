@@ -345,13 +345,29 @@ class _QuizBuzzerState extends State<QuizBuzzer> {
       //     return Center(child: CircularProgressIndicator());
       //   },
       // ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.blue,
-        onPressed: () {
-          buzzerPush('${widget.teamname}');
-        },
-        child: Icon(Icons.add),
-      ),
+      body: Container(
+        width: MediaQuery.of(context).size.width,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            InkWell(
+            onTap: (){
+      buzzerPush('${widget.teamname}');
+      },
+        child: Image(
+          image: AssetImage('images/button.png'),
+          width: 170.0,
+        ),
+            )],
+        )
+
+
+
+
+        ),
+
+
     );
   }
 }
