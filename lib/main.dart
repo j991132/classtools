@@ -35,27 +35,21 @@ class _LogInState extends State<LogIn> {
   final db = FirebaseFirestore.instance;
 
   //컬렉션 이름확인 메서드
-  confirmcollection(String collectionname) async{
-    result =  await db.collection(collectionname).doc('connect').get();
+  confirmcollection(String collectionname) async {
+    result = await db.collection(collectionname).doc('connect').get();
     print(collectionname);
     print(result.data());
-    if(result.data() != null){
+    if (result.data() != null) {
       await Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (BuildContext context) =>
-                  QuizBuzzer(controller.text+controller2.text, controller3.text)));
-    }else {
-      showSnackBar(
-          context, Text('학교이름과 방번호를 다시 살펴보세요'));
+              builder: (BuildContext context) => QuizBuzzer(
+                  (controller.text + controller2.text).trim(),
+                  controller3.text.trim())));
+    } else {
+      showSnackBar(context, Text('학교이름과 방번호를 다시 살펴보세요'));
     }
   } // 컬렉션이름 확인 메서드 끝
-  // late CollectionReference collection;
-
-  // Future<void> _confirmCollection(String classname) async {
-  //   CollectionReference collection =
-  //       FirebaseFirestore.instance.collection(classname);
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -123,17 +117,20 @@ class _LogInState extends State<LogIn> {
                               height: 50.0,
                               child: ElevatedButton(
                                 onPressed: () {
-                                  if(controller3.text.contains("t")){
+                                  if (controller3.text.contains("t")) {
                                     Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                             builder: (BuildContext context) =>
-                                                teacherPage(controller.text+controller2.text, controller3.text)));
-                                  }else {
+                                                teacherPage(
+                                                    controller.text +
+                                                        controller2.text,
+                                                    controller3.text)));
+                                  } else {
                                     confirmcollection(
                                         controller.text + controller2.text);
                                   }
-                          /*       if (controller.text == '1' &&
+                                  /*       if (controller.text == '1' &&
                                       controller2.text == '2') {
                                     Navigator.push(
                                         context,
@@ -184,9 +181,46 @@ void showSnackBar(BuildContext context, Text text) {
 // and use it to show a SnackBar.
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
+
+void showPopup(context, String teamname) {
+  showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.7,
+            height: 380,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Colors.white,
+            ),
+            child: Column(
+              children: [
+                Text(
+                  teamname,
+                  style: TextStyle(
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.redAccent),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(Icons.close),
+                  label: Text('닫기'),
+                )
+              ],
+            ),
+          ),
+        );
+      });
+}
+
 class teacherPage extends StatefulWidget {
-  String collectionname='';
-  String teamname='';
+  String collectionname = '';
+  String teamname = '';
+
   teacherPage(this.collectionname, this.teamname, {Key? key}) : super(key: key);
 
   @override
@@ -195,15 +229,19 @@ class teacherPage extends StatefulWidget {
 
 class _teacherPageState extends State<teacherPage> {
   late CollectionReference product;
+
   @override
   Widget build(BuildContext context) {
-    product = FirebaseFirestore.instance.collection('${widget.collectionname}').doc('connect').collection('teams');
+    product = FirebaseFirestore.instance
+        .collection('${widget.collectionname}')
+        .doc('connect')
+        .collection('teams');
     return Scaffold(
-        appBar: AppBar(
+      appBar: AppBar(
         title: Text('선생님 페이지'),
-    ),
+      ),
       body: StreamBuilder(
-        stream: product.snapshots(),
+        stream: product.orderBy('time', descending: false).snapshots(),
         builder: (BuildContext context,
             AsyncSnapshot<QuerySnapshot> streamSnapshot) {
           if (streamSnapshot.hasData) {
@@ -211,61 +249,57 @@ class _teacherPageState extends State<teacherPage> {
               itemCount: streamSnapshot.data!.docs.length,
               itemBuilder: (context, index) {
                 final DocumentSnapshot documentSnapshot =
-                streamSnapshot.data!.docs[index];
+                    streamSnapshot.data!.docs[index];
+                debugPrint('인덱스 번호' +
+                    index.toString() +
+                    '텍스트내용' +
+                    documentSnapshot['teamname']);
+                //아래 콜백은 무조건 빌드가 끝난다음에 실행될 수 있도록 하는 장치 - 이게 없으면 빌드가 안끝났는데 팝업을 빌드하려고 해서 에러가 난다
+                //  WidgetsBinding.instance!.addPostFrameCallback((_) {
+                //    showPopup(context, streamSnapshot.data!.docs[0]['teamname']);
+                //  });
+
                 return Card(
                   margin:
-                  EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
+                      EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
                   child: ListTile(
                     title: Text(documentSnapshot['teamname']),
-
                     trailing: SizedBox(
                       width: 100,
-                      child: Row(
-                        children: [
-                          IconButton(
-                            onPressed: () {
-
-                            },
-                            icon: Icon(Icons.edit),
-                          ),
-                          IconButton(
-                            onPressed: () {
-
-                            },
-                            icon: Icon(Icons.delete),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                 );
+                showPopup(context, documentSnapshot['teamname'].toString());
               },
+
             );
+
           }
           return Center(child: CircularProgressIndicator());
         },
       ),
     );
-}}
+  }
+}
 
 class QuizBuzzer extends StatefulWidget {
-  String collectionname='';
-  String teamname='';
-   QuizBuzzer(this.collectionname, this.teamname, {Key? key}) : super(key: key);
+  String collectionname = '';
+  String teamname = '';
+
+  QuizBuzzer(this.collectionname, this.teamname, {Key? key}) : super(key: key);
 
   @override
   State<QuizBuzzer> createState() => _QuizBuzzerState();
-
 }
 
 class _QuizBuzzerState extends State<QuizBuzzer> {
   late CollectionReference product;
+
   // CollectionReference product =
   // FirebaseFirestore.instance.collection('classname');
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
-
 
   @override
   Widget build(BuildContext context) {
@@ -283,10 +317,10 @@ class _QuizBuzzerState extends State<QuizBuzzer> {
               itemCount: streamSnapshot.data!.docs.length,
               itemBuilder: (context, index) {
                 final DocumentSnapshot documentSnapshot =
-                streamSnapshot.data!.docs[index];
+                    streamSnapshot.data!.docs[index];
                 return Card(
                   margin:
-                  EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
+                      EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
                   child: ListTile(
                     title: Text(documentSnapshot['name']),
                     subtitle: Text(documentSnapshot['price']),
@@ -295,15 +329,11 @@ class _QuizBuzzerState extends State<QuizBuzzer> {
                       child: Row(
                         children: [
                           IconButton(
-                            onPressed: () {
-
-                            },
+                            onPressed: () {},
                             icon: Icon(Icons.edit),
                           ),
                           IconButton(
-                            onPressed: () {
-
-                            },
+                            onPressed: () {},
                             icon: Icon(Icons.delete),
                           ),
                         ],
@@ -319,9 +349,7 @@ class _QuizBuzzerState extends State<QuizBuzzer> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blue,
-        onPressed: () {
-
-        },
+        onPressed: () {},
         child: Icon(Icons.add),
       ),
     );
