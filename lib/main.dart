@@ -329,44 +329,63 @@ class _QuizBuzzerState extends State<QuizBuzzer> {
         .doc('connect')
         .collection('teams');
     return Scaffold(
-      appBar: AppBar(
-        title: Text('퀴즈부저'),
-      ),
-      // body: StreamBuilder(
-      //   stream: product.snapshots(),
-      //   builder: (BuildContext context,
-      //       AsyncSnapshot<QuerySnapshot> streamSnapshot) {
-      //
-      //     return Center(child: CircularProgressIndicator());
-      //   },
-      // ),
-      body: Container(
-          width: MediaQuery.of(context).size.width,
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                IconButton(
-                    onPressed: () {
-                      buzzerPush('${widget.teamname}');
-                    },
-                    icon: Image.asset(
-                      'images/button.png',
-                      width: double.infinity,
-                      height: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                ),
+        appBar: AppBar(
+          title: Text('퀴즈부저'),
+        ),
+        body: StreamBuilder(
+          stream: product.snapshots(),
+          builder: (BuildContext context,
+              AsyncSnapshot<QuerySnapshot> streamSnapshot) {
+
+
+              ListView.builder(
+                  itemCount: streamSnapshot.data!.docs.length,
+                  itemBuilder: (context, index) {
+                    final DocumentSnapshot documentSnapshot =
+                    streamSnapshot.data!.docs[index];
+                    debugPrint(documentSnapshot["teamname"]);
+                  }
+              );
+
+    // final DocumentSnapshot documentSnapshot =
+    // streamSnapshot.data!.docs[0];
+
+
+
+
+            return Container(
+                width: MediaQuery.of(context).size.width,
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+
+
                       InkWell(
-                      onTap: (){
-                buzzerPush('${widget.teamname}');
-                },
-                  child: Image(
-                    image: AssetImage('images/button.png'),
-                    width: 170.0,
-                  ),
-                      )],
-              ])),
+                        onTap: () {
+                          if (product.where('teamname',
+                                  isEqualTo: '${widget.teamname}') ==
+                              null) {
+                            buzzerPush('${widget.teamname}');
+                          } else {
+                            debugPrint('이미 모둠명 있음' +
+                                product
+                                    .where('teamname',
+                                        isEqualTo: '${widget.teamname}')
+                                    .toString());
+                          }
+                        },
+                        child: Image(
+                          image: AssetImage('images/button.png'),
+                          width: double.infinity,
+                        ),
+                      ),
+
+                      // return Center(child: CircularProgressIndicator());
+                    ]));
+          },
+
+        )
     );
   }
 }
