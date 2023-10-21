@@ -1,5 +1,6 @@
 
 
+import 'package:just_audio/just_audio.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -224,9 +225,15 @@ class teacherPage extends StatefulWidget {
 
 class _teacherPageState extends State<teacherPage> {
   late CollectionReference product;
-
+  final player = AudioPlayer();
+  Future playEffectAudio() async {
+    final duration = await player.setAsset("assets/buzzer.wav");
+    await player.play();
+  }
   //선착 모둠명 다이얼로그 띄우기
   void showPopup(context, String teamname, String docid) {
+    playEffectAudio();
+
     showDialog(
         context: context,
         builder: (context) {
@@ -432,8 +439,9 @@ class _QuizBuzzerState extends State<QuizBuzzer> {
                           },
                           child: Image(
                             image: AssetImage('images/button.png'),
-                            width: double.infinity,
-                            // height: double.infinity,
+                            width: MediaQuery.of(context).size.width,
+                            height: MediaQuery.of(context).size.height*0.9,
+                            // fit: BoxFit.cover,
 
                           ),
                         ),

@@ -38,6 +38,7 @@ dependencies:
   firebase_core: ^2.17.0
   cloud_firestore: ^4.9.3
   auto_size_text: ^3.0.0
+  just_audio: ^0.9.35
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -64,6 +65,7 @@ flutter:
   assets:
     - images/classicon.png
     - images/button.png
+    - assets/buzzer.wav
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
