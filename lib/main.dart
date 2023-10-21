@@ -1,3 +1,5 @@
+
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -35,7 +37,39 @@ class _LogInState extends State<LogIn> {
   var result;
   final db = FirebaseFirestore.instance;
 
-  //컬렉션 이름확인 메서드
+  //컬렉션 이름확인->교사용 페이지 이동 메서드
+  gototeacherpage(String collectionname) async {
+    result = await db.collection(collectionname).doc('connect').get();
+    print(collectionname);
+    print(result.data());
+    if (result.data() == null) {
+      CollectionReference product = await FirebaseFirestore.instance
+          .collection(collectionname);
+      await product.doc('connect').set({'name': 'connect', 'price': 'ok'});
+      await Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (BuildContext context) =>
+                  teacherPage(
+                      controller.text +
+                          controller2.text,
+                      controller3.text)));
+    }else if(result.data().toString().contains('ok')){
+      await Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (BuildContext context) =>
+                  teacherPage(
+                      controller.text +
+                          controller2.text,
+                      controller3.text)));
+    }
+    else {
+      showSnackBar(context, Text('학교이름과 방번호를 다시 살펴보세요'));
+    }
+  }
+
+  //컬렉션 이름확인->학생용 부저페이지 이동 메서드
   confirmcollection(String collectionname) async {
     result = await db.collection(collectionname).doc('connect').get();
     print(collectionname);
@@ -119,14 +153,8 @@ class _LogInState extends State<LogIn> {
                               child: ElevatedButton(
                                 onPressed: () {
                                   if (controller3.text.contains("t")) {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (BuildContext context) =>
-                                                teacherPage(
-                                                    controller.text +
-                                                        controller2.text,
-                                                    controller3.text)));
+
+                                    gototeacherpage(controller.text + controller2.text);
                                   } else {
                                     confirmcollection(
                                         controller.text + controller2.text);
@@ -183,56 +211,7 @@ void showSnackBar(BuildContext context, Text text) {
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
-void showPopup(context, String teamname) {
-  showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.9,
-            height: 380,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: Colors.white,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                AutoSizeText(teamname,
-                    style: TextStyle(
-                        fontSize: 100,
-                        color: Colors.redAccent,
-                        fontWeight: FontWeight.bold),
-
-                    // Set minFontSize as 18
-                    maxFontSize: 200,
-
-                    // Set maxLines as 4
-                    maxLines: 1,
-
-                    // Set overflow as TextOverflow.ellipsis
-                    overflow: TextOverflow.ellipsis),
-                // Text(
-                //   teamname,
-                //   style: TextStyle(
-                //       fontSize: 50,
-                //       fontWeight: FontWeight.bold,
-                //       color: Colors.redAccent),
-                // ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  icon: Icon(Icons.close),
-                  label: Text('닫기'),
-                )
-              ],
-            ),
-          ),
-        );
-      });
-}
-
+//선생님페이지
 class teacherPage extends StatefulWidget {
   String collectionname = '';
   String teamname = '';
@@ -246,9 +225,84 @@ class teacherPage extends StatefulWidget {
 class _teacherPageState extends State<teacherPage> {
   late CollectionReference product;
 
+  //선착 모둠명 다이얼로그 띄우기
+  void showPopup(context, String teamname, String docid) {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return Dialog(
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.9,
+              height: 380,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Colors.white,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  AutoSizeText(teamname,
+                      style: TextStyle(
+                          fontSize: 100,
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.bold),
+
+                      // Set minFontSize as 18
+                      maxFontSize: 200,
+
+                      // Set maxLines as 4
+                      maxLines: 1,
+
+                      // Set overflow as TextOverflow.ellipsis
+                      overflow: TextOverflow.ellipsis),
+                  // Text(
+                  //   teamname,
+                  //   style: TextStyle(
+                  //       fontSize: 50,
+                  //       fontWeight: FontWeight.bold,
+                  //       color: Colors.redAccent),
+                  // ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      //도큐먼트 삭제
+                      deleteAll();
+                      // _delete(docid);
+                      //팝업창 내리기
+                      Navigator.pop(context);
+                    },
+                    icon: Icon(Icons.close),
+                    label: Text('닫기'),
+                  )
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
+  Future<void> deleteAll() async {
+    final collection = await FirebaseFirestore.instance
+        .collection('${widget.collectionname}')
+            .doc('connect')
+            .collection('teams')
+        .get();
+
+    final batch = FirebaseFirestore.instance.batch();
+
+    for (final doc in collection.docs) {
+      batch.delete(doc.reference);
+    }
+
+    return batch.commit();
+  }
+
+  Future<void> _delete(String docid) async {
+    await product.doc(docid).delete();
+  }
+
   @override
   Widget build(BuildContext context) {
-    product = FirebaseFirestore.instance
+    product =  FirebaseFirestore.instance
         .collection('${widget.collectionname}')
         .doc('connect')
         .collection('teams');
@@ -270,7 +324,7 @@ class _teacherPageState extends State<teacherPage> {
                   //아래 콜백은 무조건 빌드가 끝난다음에 실행될 수 있도록 하는 장치 - 이게 없으면 빌드가 안끝났는데 팝업을 빌드하려고 해서 에러가 난다
                   WidgetsBinding.instance!.addPostFrameCallback((_) {
                     showPopup(
-                        context, streamSnapshot.data!.docs[0]['teamname']);
+                        context, streamSnapshot.data!.docs[0]['teamname'], documentSnapshot.id);
                   });
                 } else {
                   debugPrint('인덱스 번호' +
@@ -294,7 +348,7 @@ class _teacherPageState extends State<teacherPage> {
                     ),
                   ),
                 );
-                showPopup(context, documentSnapshot['teamname'].toString());
+                // showPopup(context, documentSnapshot['teamname'].toString());
               },
             );
           }
@@ -304,7 +358,7 @@ class _teacherPageState extends State<teacherPage> {
     );
   }
 }
-
+//학생용 버튼 페이지
 class QuizBuzzer extends StatefulWidget {
   String collectionname = '';
   String teamname = '';
@@ -317,7 +371,16 @@ class QuizBuzzer extends StatefulWidget {
 
 class _QuizBuzzerState extends State<QuizBuzzer> {
   late CollectionReference product;
+  var result;
 
+  //모둠명 이름확인 메서드
+  confirmteamname() async {
+    result = await product.doc().get();
+    print('부저페이지'+result.data().toString());
+
+
+
+  }
   Future<void> buzzerPush(String teamname) async {
     await product.add({'teamname': teamname, 'time': Timestamp.now()});
   }
@@ -328,6 +391,7 @@ class _QuizBuzzerState extends State<QuizBuzzer> {
         .collection('${widget.collectionname}')
         .doc('connect')
         .collection('teams');
+    confirmteamname();
     return Scaffold(
         appBar: AppBar(
           title: Text('퀴즈부저'),
@@ -337,15 +401,8 @@ class _QuizBuzzerState extends State<QuizBuzzer> {
           builder: (BuildContext context,
               AsyncSnapshot<QuerySnapshot> streamSnapshot) {
 
-
-              ListView.builder(
-                  itemCount: streamSnapshot.data!.docs.length,
-                  itemBuilder: (context, index) {
-                    final DocumentSnapshot documentSnapshot =
-                    streamSnapshot.data!.docs[index];
-                    debugPrint(documentSnapshot["teamname"]);
-                  }
-              );
+ List? list = streamSnapshot.data?.docs.map((e) => e.data()).toList();
+// print('퀴즈부저스트림빌더'+list.toString());
 
     // final DocumentSnapshot documentSnapshot =
     // streamSnapshot.data!.docs[0];
@@ -355,41 +412,43 @@ class _QuizBuzzerState extends State<QuizBuzzer> {
 
             return Container(
                 width: MediaQuery.of(context).size.width,
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
+                child: SingleChildScrollView(
+                  // scrollDirection: Axis.horizontal,
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
 
 
-                      InkWell(
-                        onTap: () {
-                          if (product.where('teamname',
-                                  isEqualTo: '${widget.teamname}') ==
-                              null) {
-                            buzzerPush('${widget.teamname}');
-                          } else {
-                            debugPrint('이미 모둠명 있음' +
-                                product
-                                    .where('teamname',
-                                        isEqualTo: '${widget.teamname}')
-                                    .toString());
-                          }
-                        },
-                        child: Image(
-                          image: AssetImage('images/button.png'),
-                          width: double.infinity,
+                        InkWell(
+                          onTap: () {
+                            print('퀴즈부저스트림빌더'+list.toString());
+                            if (list.toString().contains('${widget.teamname}')) {
+                              debugPrint('이미 모둠명 있음' + '${widget.teamname}');
+                            } else {
+                              buzzerPush('${widget.teamname}');
+
+                            }
+                          },
+                          child: Image(
+                            image: AssetImage('images/button.png'),
+                            width: double.infinity,
+                            // height: double.infinity,
+
+                          ),
                         ),
-                      ),
 
-                      // return Center(child: CircularProgressIndicator());
-                    ]));
+                        // return Center(child: CircularProgressIndicator());
+                      ])
+                )
+                );
           },
 
         )
     );
   }
 }
-
+//테스트용 페이지
 class Producttest extends StatefulWidget {
   const Producttest({Key? key}) : super(key: key);
 
