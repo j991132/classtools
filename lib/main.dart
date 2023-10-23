@@ -328,6 +328,7 @@ class _teacherPageState extends State<teacherPage> {
                 final DocumentSnapshot documentSnapshot =
                     streamSnapshot.data!.docs[index];
                 if (streamSnapshot.data!.docs.length == 1) {
+                  debugPrint('스트림 스냅샷 길이'+streamSnapshot.data!.docs.length.toString());
                   //아래 콜백은 무조건 빌드가 끝난다음에 실행될 수 있도록 하는 장치 - 이게 없으면 빌드가 안끝났는데 팝업을 빌드하려고 해서 에러가 난다
                   WidgetsBinding.instance!.addPostFrameCallback((_) {
                     showPopup(
@@ -362,6 +363,15 @@ class _teacherPageState extends State<teacherPage> {
           return Center(child: CircularProgressIndicator());
         },
       ),
+floatingActionButton: FloatingActionButton (
+ backgroundColor: Colors.red,
+ onPressed: (){
+   deleteAll();
+ },
+  child: Icon(Icons.close),
+) ,
+
+
     );
   }
 }
