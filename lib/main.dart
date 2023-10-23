@@ -52,18 +52,16 @@ class _LogInState extends State<LogIn> {
           MaterialPageRoute(
               builder: (BuildContext context) =>
                   teacherPage(
-                      controller.text +
-                          controller2.text,
-                      controller3.text)));
+                      (controller.text + controller2.text).trim(),
+                      controller3.text.trim())));
     }else if(result.data().toString().contains('ok')){
       await Navigator.push(
           context,
           MaterialPageRoute(
               builder: (BuildContext context) =>
                   teacherPage(
-                      controller.text +
-                          controller2.text,
-                      controller3.text)));
+                      (controller.text + controller2.text).trim(),
+                      controller3.text.trim())));
     }
     else {
       showSnackBar(context, Text('학교이름과 방번호를 다시 살펴보세요'));
@@ -155,10 +153,10 @@ class _LogInState extends State<LogIn> {
                                 onPressed: () {
                                   if (controller3.text.contains("t")) {
 
-                                    gototeacherpage(controller.text + controller2.text);
+                                    gototeacherpage((controller.text + controller2.text).trim());
                                   } else {
                                     confirmcollection(
-                                        controller.text + controller2.text);
+                                        (controller.text + controller2.text).trim());
                                   }
                                   /*       if (controller.text == '1' &&
                                       controller2.text == '2') {
@@ -327,7 +325,7 @@ class _teacherPageState extends State<teacherPage> {
               itemBuilder: (context, index) {
                 final DocumentSnapshot documentSnapshot =
                     streamSnapshot.data!.docs[index];
-                if (streamSnapshot.data!.docs.length == 1) {
+                if (streamSnapshot.data!.docs.length <= 1) {
                   debugPrint('스트림 스냅샷 길이'+streamSnapshot.data!.docs.length.toString());
                   //아래 콜백은 무조건 빌드가 끝난다음에 실행될 수 있도록 하는 장치 - 이게 없으면 빌드가 안끝났는데 팝업을 빌드하려고 해서 에러가 난다
                   WidgetsBinding.instance!.addPostFrameCallback((_) {
