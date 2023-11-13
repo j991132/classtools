@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'dart:async';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // 에러방지 코딩셰프 매운맛 26강 참고
@@ -229,7 +230,8 @@ class _teacherPageState extends State<teacherPage> {
     await player.play();
   }
   //선착 모둠명 다이얼로그 띄우기
-  void showPopup(context, String teamname, String docid) {
+  // void showPopup(context, String teamname, String docid) {
+  void showPopup(context, String teamname) {
     playEffectAudio();
 
     showDialog(
@@ -281,8 +283,13 @@ class _teacherPageState extends State<teacherPage> {
                 ],
               ),
             ),
+
           );
         });
+    Timer(Duration(seconds: 3), () {
+      deleteAll();
+      Navigator.pop(context);
+    });
   }
 
   Future<void> deleteAll() async {
@@ -311,6 +318,9 @@ class _teacherPageState extends State<teacherPage> {
         .collection('${widget.collectionname}')
         .doc('connect')
         .collection('teams');
+
+
+
     return Scaffold(
       appBar: AppBar(
         title: Text('선생님 페이지'),
@@ -319,18 +329,37 @@ class _teacherPageState extends State<teacherPage> {
         stream: product.orderBy('time', descending: false).snapshots(),
         builder: (BuildContext context,
             AsyncSnapshot<QuerySnapshot> streamSnapshot) {
+
+
+
+
+
           if (streamSnapshot.hasData) {
             return ListView.builder(
               itemCount: streamSnapshot.data!.docs.length,
               itemBuilder: (context, index) {
                 final DocumentSnapshot documentSnapshot =
                     streamSnapshot.data!.docs[index];
-                if (streamSnapshot.data!.docs.length <= 1) {
+/*
+                FirebaseFirestore db = FirebaseFirestore.instance;
+                db.runTransaction((transaction) async{
+                   DocumentSnapshot _snapshot = await transaction.get(product.doc());
+                  if(documentSnapshot.exists){
+                    //아래 콜백은 무조건 빌드가 끝난다음에 실행될 수 있도록 하는 장치 - 이게 없으면 빌드가 안끝났는데 팝업을 빌드하려고 해서 에러가 난다
+                    WidgetsBinding.instance!.addPostFrameCallback((_) {
+                      showPopup(context, streamSnapshot.data!.docs[0]['teamname']);
+                    });
+                  } else {throw Exception('Does not exists');}
+                } );
+*/
+
+                if (streamSnapshot.data!.docs.length <=1 ) {
                   debugPrint('스트림 스냅샷 길이'+streamSnapshot.data!.docs.length.toString());
                   //아래 콜백은 무조건 빌드가 끝난다음에 실행될 수 있도록 하는 장치 - 이게 없으면 빌드가 안끝났는데 팝업을 빌드하려고 해서 에러가 난다
                   WidgetsBinding.instance!.addPostFrameCallback((_) {
                     showPopup(
-                        context, streamSnapshot.data!.docs[0]['teamname'], documentSnapshot.id);
+                        // context, streamSnapshot.data!.docs[0]['teamname'], documentSnapshot.id);
+                        context, streamSnapshot.data!.docs[0]['teamname']);
                   });
                 } else {
                   debugPrint('인덱스 번호' +
@@ -338,6 +367,7 @@ class _teacherPageState extends State<teacherPage> {
                       '텍스트내용' +
                       documentSnapshot['teamname']);
                 }
+
 
                 //아래 콜백은 무조건 빌드가 끝난다음에 실행될 수 있도록 하는 장치 - 이게 없으면 빌드가 안끝났는데 팝업을 빌드하려고 해서 에러가 난다
                 //  WidgetsBinding.instance!.addPostFrameCallback((_) {
@@ -357,10 +387,14 @@ class _teacherPageState extends State<teacherPage> {
                 // showPopup(context, documentSnapshot['teamname'].toString());
               },
             );
+
           }
           return Center(child: CircularProgressIndicator());
         },
       ),
+
+
+
 floatingActionButton: FloatingActionButton (
  backgroundColor: Colors.red,
  onPressed: (){
