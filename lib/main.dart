@@ -1,4 +1,4 @@
-
+import 'dart:html';
 
 import 'package:just_audio/just_audio.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -7,6 +7,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'dart:async';
+import 'package:webview_flutter/webview_flutter.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // 에러방지 코딩셰프 매운맛 26강 참고
@@ -38,6 +40,7 @@ class _LogInState extends State<LogIn> {
   TextEditingController controller3 = TextEditingController();
   var result;
   final db = FirebaseFirestore.instance;
+  WebViewController? _webViewController;
 
   //컬렉션 이름확인->교사용 페이지 이동 메서드
   gototeacherpage(String collectionname) async {
@@ -87,7 +90,9 @@ class _LogInState extends State<LogIn> {
   } // 컬렉션이름 확인 메서드 끝
 
   @override
+
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Class Tools'),
@@ -216,6 +221,7 @@ class teacherPage extends StatefulWidget {
   String collectionname = '';
   String teamname = '';
 
+
   teacherPage(this.collectionname, this.teamname, {Key? key}) : super(key: key);
 
   @override
@@ -225,14 +231,28 @@ class teacherPage extends StatefulWidget {
 class _teacherPageState extends State<teacherPage> {
   late CollectionReference product;
   final player = AudioPlayer();
+
+
+
+
   Future playEffectAudio() async {
     final duration = await player.setAsset("assets/buzzer.wav");
     await player.play();
   }
+
+void bringtoscreen() {
+
+
+}
+
+
   //선착 모둠명 다이얼로그 띄우기
   // void showPopup(context, String teamname, String docid) {
   void showPopup(context, String teamname) {
     playEffectAudio();
+
+
+
 
     showDialog(
         context: context,
@@ -285,11 +305,14 @@ class _teacherPageState extends State<teacherPage> {
             ),
 
           );
-        });
+        }
+        );
+
     Timer(Duration(seconds: 3), () {
       deleteAll();
       Navigator.pop(context);
     });
+
   }
 
   Future<void> deleteAll() async {

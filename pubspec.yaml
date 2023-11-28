@@ -39,6 +39,9 @@ dependencies:
   cloud_firestore: ^4.9.3
   auto_size_text: ^3.0.0
   just_audio: ^0.9.35
+  webview_flutter: ^2.0.1
+  html: ^0.15.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
