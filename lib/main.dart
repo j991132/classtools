@@ -238,19 +238,11 @@ class _teacherPageState extends State<teacherPage> {
     await player.play();
   }
 
-void bringtoscreen() {
-
-
-}
-
 
   //선착 모둠명 다이얼로그 띄우기
   // void showPopup(context, String teamname, String docid) {
   void showPopup(context, String teamname) {
     playEffectAudio();
-
-
-
 
     showDialog(
         context: context,
