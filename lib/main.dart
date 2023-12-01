@@ -228,10 +228,11 @@ class teacherPage extends StatefulWidget {
   State<teacherPage> createState() => _teacherPageState();
 }
 
+
 class _teacherPageState extends State<teacherPage> {
   late CollectionReference product;
   final player = AudioPlayer();
-
+  bool _isDialogShowing = false;
 
   Future playEffectAudio() async {
     final duration = await player.setAsset("assets/buzzer.wav");
@@ -242,6 +243,7 @@ class _teacherPageState extends State<teacherPage> {
   //선착 모둠명 다이얼로그 띄우기
   // void showPopup(context, String teamname, String docid) {
   void showPopup(context, String teamname) {
+    _isDialogShowing = true; // set it `true` since dialog is being displayed
     playEffectAudio();
 
     showDialog(
@@ -284,6 +286,7 @@ class _teacherPageState extends State<teacherPage> {
                       //도큐먼트 삭제
                       deleteAll();
                       // _delete(docid);
+                      _isDialogShowing = false; // set it `false` since dialog is closed
                       //팝업창 내리기
                       Navigator.pop(context);
                     },
@@ -298,10 +301,14 @@ class _teacherPageState extends State<teacherPage> {
         }
         );
 
-    Timer(Duration(seconds: 3), () {
+  Timer(Duration(seconds: 3), () {
+    if(_isDialogShowing == true) {
       deleteAll();
+      _isDialogShowing = false; // set it `false` since dialog is closed
       Navigator.pop(context);
-    });
+    }
+  });
+
 
   }
 
