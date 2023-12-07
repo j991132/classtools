@@ -303,8 +303,9 @@ class _teacherPageState extends State<teacherPage> {
 
   Timer(Duration(seconds: 3), () {
     if(_isDialogShowing == true) {
-      deleteAll();
       _isDialogShowing = false; // set it `false` since dialog is closed
+      deleteAll();
+
       Navigator.pop(context);
     }
   });
@@ -373,6 +374,15 @@ class _teacherPageState extends State<teacherPage> {
                 } );
 */
 
+    if(_isDialogShowing == false) {
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
+      showPopup(
+        // context, streamSnapshot.data!.docs[0]['teamname'], documentSnapshot.id);
+          context, streamSnapshot.data!.docs[0]['teamname']);
+    });
+      // _isDialogShowing = true; // set it `false` since dialog is closed
+    }
+                /*
                 if (streamSnapshot.data!.docs.length <=1 ) {
                   debugPrint('스트림 스냅샷 길이'+streamSnapshot.data!.docs.length.toString());
                   //아래 콜백은 무조건 빌드가 끝난다음에 실행될 수 있도록 하는 장치 - 이게 없으면 빌드가 안끝났는데 팝업을 빌드하려고 해서 에러가 난다
@@ -381,11 +391,14 @@ class _teacherPageState extends State<teacherPage> {
                         // context, streamSnapshot.data!.docs[0]['teamname'], documentSnapshot.id);
                         context, streamSnapshot.data!.docs[0]['teamname']);
                   });
-                } else {
+                }
+                 */
+                 else {
+
                   debugPrint('인덱스 번호' +
                       index.toString() +
                       '텍스트내용' +
-                      documentSnapshot['teamname']);
+                      documentSnapshot['teamname']+'다이얼로그상태'+_isDialogShowing.toString());
                 }
 
 
