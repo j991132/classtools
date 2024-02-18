@@ -55,5 +55,20 @@
       });
     });
   </script>
+  <script>
+      window.addEventListener('load', function(ev) {
+const requestWakeLock = async () => {
+  try {
+    const wakeLock = await navigator.wakeLock.request("screen");
+  } catch (err) {
+    // The wake lock request fails - usually system-related, such as low battery.
+
+    console.log(`${err.name}, ${err.message}`);
+  }
+};
+
+requestWakeLock();
+    });
+  </script>
 </body>
 </html>

@@ -1,10 +1,11 @@
 
-
+import 'dart:html' as html;
 import 'package:just_audio/just_audio.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:wakelock/wakelock.dart';
+// import 'package:wakelock/wakelock.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'firebase_options.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'dart:async';
@@ -13,12 +14,19 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // 에러방지 코딩셰프 매운맛 26강 참고
-  Wakelock.enable();  //화면꺼짐방지
+  WakelockPlus.enable();  //화면꺼짐방지
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(MyApp());
 }
+
+// A function that calls the Wake Lock API
+// Future<html.WakeLockSentinel> preventDisplaySleep() async {
+//   // Request a screen wake lock
+//   return await html.window.navigator.wakeLock.request('screen');
+// }
 
 class MyApp extends StatelessWidget {
   @override
@@ -474,6 +482,7 @@ class _QuizBuzzerState extends State<QuizBuzzer> {
 
   @override
   Widget build(BuildContext context) {
+
     product = FirebaseFirestore.instance
         .collection('${widget.collectionname}')
         .doc('connect')
