@@ -1,9 +1,10 @@
-import 'dart:html';
+
 
 import 'package:just_audio/just_audio.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:wakelock/wakelock.dart';
 import 'firebase_options.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'dart:async';
@@ -12,6 +13,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // 에러방지 코딩셰프 매운맛 26강 참고
+  Wakelock.enable();  //화면꺼짐방지
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -251,8 +253,10 @@ class _teacherPageState extends State<teacherPage> {
         builder: (context) {
           return Dialog(
             child: Container(
-              width: MediaQuery.of(context).size.width * 0.9,
-              height: 380,
+              width: MediaQuery.of(context).size.width * 1,
+              height: MediaQuery.of(context).size.width * 0.8,
+              // width: MediaQuery.of(context).size.width * 0.9,
+              // height: 380,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
                 color: Colors.white,
@@ -262,12 +266,13 @@ class _teacherPageState extends State<teacherPage> {
                 children: [
                   AutoSizeText(teamname,
                       style: TextStyle(
-                          fontSize: 100,
+                        //폰트사이즈 꽉차게
+                          fontSize: MediaQuery.of(context).size.width,
                           color: Colors.redAccent,
                           fontWeight: FontWeight.bold),
 
                       // Set minFontSize as 18
-                      maxFontSize: 200,
+                      maxFontSize: 500,
 
                       // Set maxLines as 4
                       maxLines: 1,
