@@ -14,7 +14,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // 에러방지 코딩셰프 매운맛 26강 참고
-  WakelockPlus.enable();  //화면꺼짐방지
+  WakelockPlus.enable();  //화면꺼짐방지 -> 이건 안먹힌다 index.html 에서 스크립트 추가해서 해결한다.
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -317,8 +317,10 @@ class _teacherPageState extends State<teacherPage> {
   Timer(Duration(seconds: 3), () {
     if(_isDialogShowing == true) {
       _isDialogShowing = false; // set it `false` since dialog is closed
-      deleteAll();
+      Timer(Duration(milliseconds: 5),(){   //씹힘방지
+        deleteAll();
 
+      });
       Navigator.pop(context);
     }
   });
