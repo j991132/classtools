@@ -1,20 +1,23 @@
-
 import 'dart:html' as html;
 import 'package:just_audio/just_audio.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+
 // import 'package:wakelock/wakelock.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'firebase_options.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'dart:async';
 import 'package:webview_flutter/webview_flutter.dart';
-
+import 'package:open_file/open_file.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:typed_data';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // 에러방지 코딩셰프 매운맛 26강 참고
-  WakelockPlus.enable();  //화면꺼짐방지 -> 이건 안먹힌다 index.html 에서 스크립트 추가해서 해결한다.
+  WakelockPlus.enable(); //화면꺼짐방지 -> 이건 안먹힌다 index.html 에서 스크립트 추가해서 해결한다.
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -58,26 +61,23 @@ class _LogInState extends State<LogIn> {
     print(collectionname);
     print(result.data());
     if (result.data() == null) {
-      CollectionReference product = await FirebaseFirestore.instance
-          .collection(collectionname);
+      CollectionReference product =
+          await FirebaseFirestore.instance.collection(collectionname);
       await product.doc('connect').set({'name': 'connect', 'price': 'ok'});
       await Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (BuildContext context) =>
-                  teacherPage(
-                      (controller.text + controller2.text).trim(),
-                      controller3.text.trim())));
-    }else if(result.data().toString().contains('ok')){
+              builder: (BuildContext context) => teacherPage(
+                  (controller.text + controller2.text).trim(),
+                  controller3.text.trim())));
+    } else if (result.data().toString().contains('ok')) {
       await Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (BuildContext context) =>
-                  teacherPage(
-                      (controller.text + controller2.text).trim(),
-                      controller3.text.trim())));
-    }
-    else {
+              builder: (BuildContext context) => teacherPage(
+                  (controller.text + controller2.text).trim(),
+                  controller3.text.trim())));
+    } else {
       showSnackBar(context, Text('학교이름과 방번호를 다시 살펴보세요'));
     }
   }
@@ -100,16 +100,19 @@ class _LogInState extends State<LogIn> {
   } // 컬렉션이름 확인 메서드 끝
 
   @override
-
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Class Tools'),
         elevation: 0.0,
         backgroundColor: Colors.redAccent,
         centerTitle: true,
-        leading: IconButton(icon: Icon(Icons.menu), onPressed: () {}),
+        leading: IconButton(
+            icon: Icon(Icons.menu),
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (BuildContext context) => test()));
+            }),
         actions: <Widget>[
           IconButton(icon: Icon(Icons.search), onPressed: () {})
         ],
@@ -168,11 +171,13 @@ class _LogInState extends State<LogIn> {
                               child: ElevatedButton(
                                 onPressed: () {
                                   if (controller3.text.contains("t")) {
-
-                                    gototeacherpage((controller.text + controller2.text).trim());
+                                    gototeacherpage(
+                                        (controller.text + controller2.text)
+                                            .trim());
                                   } else {
                                     confirmcollection(
-                                        (controller.text + controller2.text).trim());
+                                        (controller.text + controller2.text)
+                                            .trim());
                                   }
                                   /*       if (controller.text == '1' &&
                                       controller2.text == '2') {
@@ -231,13 +236,11 @@ class teacherPage extends StatefulWidget {
   String collectionname = '';
   String teamname = '';
 
-
   teacherPage(this.collectionname, this.teamname, {Key? key}) : super(key: key);
 
   @override
   State<teacherPage> createState() => _teacherPageState();
 }
-
 
 class _teacherPageState extends State<teacherPage> {
   late CollectionReference product;
@@ -248,7 +251,6 @@ class _teacherPageState extends State<teacherPage> {
     final duration = await player.setAsset("assets/buzzer.wav");
     await player.play();
   }
-
 
   //선착 모둠명 다이얼로그 띄우기
   // void showPopup(context, String teamname, String docid) {
@@ -274,7 +276,7 @@ class _teacherPageState extends State<teacherPage> {
                 children: [
                   AutoSizeText(teamname,
                       style: TextStyle(
-                        //폰트사이즈 꽉차게
+                          //폰트사이즈 꽉차게
                           fontSize: MediaQuery.of(context).size.width,
                           color: Colors.redAccent,
                           fontWeight: FontWeight.bold),
@@ -299,7 +301,8 @@ class _teacherPageState extends State<teacherPage> {
                       //도큐먼트 삭제
                       deleteAll();
                       // _delete(docid);
-                      _isDialogShowing = false; // set it `false` since dialog is closed
+                      _isDialogShowing =
+                          false; // set it `false` since dialog is closed
                       //팝업창 내리기
                       Navigator.pop(context);
                     },
@@ -309,30 +312,26 @@ class _teacherPageState extends State<teacherPage> {
                 ],
               ),
             ),
-
           );
-        }
-        );
+        });
 
-  Timer(Duration(seconds: 3), () {
-    if(_isDialogShowing == true) {
-      _isDialogShowing = false; // set it `false` since dialog is closed
-      Timer(Duration(milliseconds: 5),(){   //씹힘방지
-        deleteAll();
-
-      });
-      Navigator.pop(context);
-    }
-  });
-
-
+    Timer(Duration(seconds: 3), () {
+      if (_isDialogShowing == true) {
+        _isDialogShowing = false; // set it `false` since dialog is closed
+        Timer(Duration(seconds: 1), () {
+          //씹힘방지
+          deleteAll();
+        });
+        Navigator.pop(context);
+      }
+    });
   }
 
   Future<void> deleteAll() async {
     final collection = await FirebaseFirestore.instance
         .collection('${widget.collectionname}')
-            .doc('connect')
-            .collection('teams')
+        .doc('connect')
+        .collection('teams')
         .get();
 
     final batch = FirebaseFirestore.instance.batch();
@@ -350,12 +349,10 @@ class _teacherPageState extends State<teacherPage> {
 
   @override
   Widget build(BuildContext context) {
-    product =  FirebaseFirestore.instance
+    product = FirebaseFirestore.instance
         .collection('${widget.collectionname}')
         .doc('connect')
         .collection('teams');
-
-
 
     return Scaffold(
       appBar: AppBar(
@@ -365,11 +362,6 @@ class _teacherPageState extends State<teacherPage> {
         stream: product.orderBy('time', descending: false).snapshots(),
         builder: (BuildContext context,
             AsyncSnapshot<QuerySnapshot> streamSnapshot) {
-
-
-
-
-
           if (streamSnapshot.hasData) {
             return ListView.builder(
               itemCount: streamSnapshot.data!.docs.length,
@@ -389,14 +381,15 @@ class _teacherPageState extends State<teacherPage> {
                 } );
 */
 
-    if(_isDialogShowing == false) {
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
-      showPopup(
-        // context, streamSnapshot.data!.docs[0]['teamname'], documentSnapshot.id);
-          context, streamSnapshot.data!.docs[0]['teamname']);
-    });
-      // _isDialogShowing = true; // set it `false` since dialog is closed
-    }
+                if (_isDialogShowing == false) {
+                  WidgetsBinding.instance!.addPostFrameCallback((_) {
+                    showPopup(
+                        // context, streamSnapshot.data!.docs[0]['teamname'], documentSnapshot.id);
+                        context,
+                        streamSnapshot.data!.docs[0]['teamname']);
+                  });
+                  // _isDialogShowing = true; // set it `false` since dialog is closed
+                }
                 /*
                 if (streamSnapshot.data!.docs.length <=1 ) {
                   debugPrint('스트림 스냅샷 길이'+streamSnapshot.data!.docs.length.toString());
@@ -408,14 +401,14 @@ class _teacherPageState extends State<teacherPage> {
                   });
                 }
                  */
-                 else {
-
+                else {
                   debugPrint('인덱스 번호' +
                       index.toString() +
                       '텍스트내용' +
-                      documentSnapshot['teamname']+'다이얼로그상태'+_isDialogShowing.toString());
+                      documentSnapshot['teamname'] +
+                      '다이얼로그상태' +
+                      _isDialogShowing.toString());
                 }
-
 
                 //아래 콜백은 무조건 빌드가 끝난다음에 실행될 수 있도록 하는 장치 - 이게 없으면 빌드가 안끝났는데 팝업을 빌드하려고 해서 에러가 난다
                 //  WidgetsBinding.instance!.addPostFrameCallback((_) {
@@ -435,26 +428,84 @@ class _teacherPageState extends State<teacherPage> {
                 // showPopup(context, documentSnapshot['teamname'].toString());
               },
             );
-
           }
           return Center(child: CircularProgressIndicator());
         },
       ),
-
-
-
-floatingActionButton: FloatingActionButton (
- backgroundColor: Colors.red,
- onPressed: (){
-   deleteAll();
- },
-  child: Icon(Icons.close),
-) ,
-
-
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.red,
+        onPressed: () {
+          deleteAll();
+        },
+        child: Icon(Icons.close),
+      ),
     );
   }
 }
+
+//테스트 페이지
+class test extends StatefulWidget {
+  const test({Key? key}) : super(key: key);
+
+  @override
+  State<test> createState() => _testState();
+}
+
+class _testState extends State<test> {
+  var _openResult = 'Unknown';
+  Future<void> openFile() async {
+    FilePickerResult? result2 = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['txt'],
+    );
+    if(result2 !=null && result2.files.isNotEmpty) {
+      String fileName = result2.files.first.name;
+      Uint8List fileBytes = result2.files.first.bytes!;
+      debugPrint(fileName);
+      _openResult = fileName;
+    }
+    // _openAppPrivateFile();
+  }
+  _openAppPrivateFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['txt'],
+    );
+    if(result !=null && result.files.isNotEmpty){
+      String fileName = result.files.first.name;
+      Uint8List fileBytes = result.files.first.bytes!;
+      debugPrint(fileName);
+      /*
+      //open an app private storage file
+      //open an external storage image file on android 13
+      if (await Permission.manageExternalStorage.request().isGranted) {
+        final result = await OpenFile.open(fileName);
+        setState(() {
+          _openResult = "type=${result.type}  message=${result.message}";
+        });
+      }*/
+    }
+
+  }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text('뷰 테스트'),
+        ),
+        body: Center(
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+              Text('open result: $_openResult\n'),
+              TextButton(
+                child: Text('Tap to open file'),
+                onPressed: openFile,
+              ),
+            ])));
+  }
+}
+
 //학생용 버튼 페이지
 class QuizBuzzer extends StatefulWidget {
   String collectionname = '';
@@ -473,18 +524,15 @@ class _QuizBuzzerState extends State<QuizBuzzer> {
   //모둠명 이름확인 메서드
   confirmteamname() async {
     result = await product.doc().get();
-    print('부저페이지'+result.data().toString());
-
-
-
+    print('부저페이지' + result.data().toString());
   }
+
   Future<void> buzzerPush(String teamname) async {
     await product.add({'teamname': teamname, 'time': Timestamp.now()});
   }
 
   @override
   Widget build(BuildContext context) {
-
     product = FirebaseFirestore.instance
         .collection('${widget.collectionname}')
         .doc('connect')
@@ -498,55 +546,45 @@ class _QuizBuzzerState extends State<QuizBuzzer> {
           stream: product.snapshots(),
           builder: (BuildContext context,
               AsyncSnapshot<QuerySnapshot> streamSnapshot) {
-
- List? list = streamSnapshot.data?.docs.map((e) => e.data()).toList();
+            List? list =
+                streamSnapshot.data?.docs.map((e) => e.data()).toList();
 // print('퀴즈부저스트림빌더'+list.toString());
 
-    // final DocumentSnapshot documentSnapshot =
-    // streamSnapshot.data!.docs[0];
-
-
-
+            // final DocumentSnapshot documentSnapshot =
+            // streamSnapshot.data!.docs[0];
 
             return Container(
                 width: MediaQuery.of(context).size.width,
                 child: SingleChildScrollView(
-                  // scrollDirection: Axis.horizontal,
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-
-
-                        InkWell(
-                          onTap: () {
-                            print('퀴즈부저스트림빌더'+list.toString());
-                            if (list.toString().contains('${widget.teamname}')) {
-                              debugPrint('이미 모둠명 있음' + '${widget.teamname}');
-                            } else {
-                              buzzerPush('${widget.teamname}');
-
-                            }
-                          },
-                          child: Image(
-                            image: AssetImage('images/button.png'),
-                            width: MediaQuery.of(context).size.width,
-                            height: MediaQuery.of(context).size.height*0.9,
-                            // fit: BoxFit.cover,
-
-                          ),
+                    // scrollDirection: Axis.horizontal,
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                      InkWell(
+                        onTap: () {
+                          print('퀴즈부저스트림빌더' + list.toString());
+                          if (list.toString().contains('${widget.teamname}')) {
+                            debugPrint('이미 모둠명 있음' + '${widget.teamname}');
+                          } else {
+                            buzzerPush('${widget.teamname}');
+                          }
+                        },
+                        child: Image(
+                          image: AssetImage('images/button.png'),
+                          width: MediaQuery.of(context).size.width,
+                          height: MediaQuery.of(context).size.height * 0.9,
+                          // fit: BoxFit.cover,
                         ),
+                      ),
 
-                        // return Center(child: CircularProgressIndicator());
-                      ])
-                )
-                );
+                      // return Center(child: CircularProgressIndicator());
+                    ])));
           },
-
-        )
-    );
+        ));
   }
 }
+
 //테스트용 페이지
 class Producttest extends StatefulWidget {
   const Producttest({Key? key}) : super(key: key);

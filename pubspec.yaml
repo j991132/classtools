@@ -42,6 +42,9 @@ dependencies:
   webview_flutter: ^2.0.1
   html: ^0.15.4
   wakelock_plus: ^1.1.4
+  open_file: ^3.3.2
+  permission_handler: ^11.0.1
+  file_picker: ^8.0.0+1
 
 
 
