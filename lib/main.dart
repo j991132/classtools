@@ -1,4 +1,5 @@
 import 'dart:html' as html;
+import 'dart:html';
 import 'package:just_audio/just_audio.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -147,18 +148,18 @@ class _LogInState extends State<LogIn> {
                           TextField(
                             controller: controller,
                             autofocus: true,
-                            decoration: InputDecoration(labelText: '학교이름'),
+                            decoration: InputDecoration(labelText: '학교이름',hintText: "대화초"),
                             keyboardType: TextInputType.text,
                           ),
                           TextField(
                             controller: controller2,
-                            decoration: InputDecoration(labelText: '방번호'),
+                            decoration: InputDecoration(labelText: '방번호',hintText: "1234"),
                             keyboardType: TextInputType.number,
                             // obscureText: true, // 비밀번호 안보이도록 하는 것
                           ),
                           TextField(
                             controller: controller3,
-                            decoration: InputDecoration(labelText: '모둠이름'),
+                            decoration: InputDecoration(labelText: '모둠이름',hintText: "1모둠, 본인이름 등"),
                             keyboardType: TextInputType.text,
                             // obscureText: true, // 비밀번호 안보이도록 하는 것
                           ),
@@ -453,40 +454,42 @@ class test extends StatefulWidget {
 
 class _testState extends State<test> {
   var _openResult = 'Unknown';
-  Future<void> openFile() async {
-    FilePickerResult? result2 = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['txt'],
-    );
-    if(result2 !=null && result2.files.isNotEmpty) {
-      String fileName = result2.files.first.name;
-      Uint8List fileBytes = result2.files.first.bytes!;
-      debugPrint(fileName);
-      _openResult = fileName;
-    }
-    // _openAppPrivateFile();
-  }
-  _openAppPrivateFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['txt'],
-    );
-    if(result !=null && result.files.isNotEmpty){
-      String fileName = result.files.first.name;
-      Uint8List fileBytes = result.files.first.bytes!;
-      debugPrint(fileName);
-      /*
-      //open an app private storage file
-      //open an external storage image file on android 13
-      if (await Permission.manageExternalStorage.request().isGranted) {
-        final result = await OpenFile.open(fileName);
-        setState(() {
-          _openResult = "type=${result.type}  message=${result.message}";
-        });
-      }*/
+
+  void _pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+    if (result != null) {
+      PlatformFile file = result.files.first;
+
+      print(file.name);
+      // print(file.bytes);
+      // print(file.size);
+      print(file.extension);
+      print(file.path);
+      OpenFile.open(file.path);
     }
 
+/*
+    // opens storage to pick files and the picked file or files
+    // are assigned into result and if no file is chosen result is null.
+    // you can also toggle "allowMultiple" true or false depending on your need
+    final result3 = await FilePicker.platform.pickFiles(allowMultiple: true);
+
+    // if no file is picked
+    if (result3 == null) return;
+    print(result3.files.first.name);
+    print(result3.files.first.size);
+    print(result3.files.first.path);
+    // we get the file from result object
+    final file = result3.files.first;
+*/
+    // _openFile(file);
   }
+
+  void _openFile(PlatformFile file) {
+    OpenFile.open(file.path);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -500,7 +503,7 @@ class _testState extends State<test> {
               Text('open result: $_openResult\n'),
               TextButton(
                 child: Text('Tap to open file'),
-                onPressed: openFile,
+                onPressed: _pickFile,
               ),
             ])));
   }
