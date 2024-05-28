@@ -470,7 +470,7 @@ class _testState extends State<test> {
       // print(file.size);
       print(file.extension);
       // print(file.path);
-      _openResult = "utf8.decode(file.bytes!)";
+      _openResult = "utf8.decode(file.bytes!)";  //바이트속성으로 내용파악
       print(_openResult);
       OpenFile.open(utf8.decode(file.bytes!));
     }
