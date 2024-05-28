@@ -16,6 +16,8 @@ import 'package:open_file/open_file.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:typed_data';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // 에러방지 코딩셰프 매운맛 26강 참고
@@ -455,7 +457,8 @@ class test extends StatefulWidget {
 
 class _testState extends State<test> {
   var _openResult = 'Unknown';
-
+  final GlobalKey<SfPdfViewerState> _pdfViewerKey = GlobalKey();
+  late PdfViewerController _pdfViewerController;
   void _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -495,15 +498,41 @@ class _testState extends State<test> {
   void _openFile(PlatformFile file) {
     OpenFile.open(file.path);
   }
-
   @override
+  void initState() {
+    _pdfViewerController = PdfViewerController();
+
+    super.initState();
+  }
+  @override
+
   Widget build(BuildContext context) {
+
+    _pdfViewerController.zoomLevel = 3;
     return Scaffold(
         appBar: AppBar(
           title: Text('뷰 테스트'),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(
+                Icons.zoom_in,
+                color: Colors.white,
+              ),
+              onPressed: () {
+                _pdfViewerController.zoomLevel = 0.5;
+              },
+            ),
+          ],
         ),
-        body: Center(
-            child: Column(
+
+        body:
+
+        SfPdfViewer.asset('1.pdf', pageLayoutMode: PdfPageLayoutMode.single ),
+
+
+            // SfPdfViewer.network('https://firebasestorage.googleapis.com/v0/b/classtools-9d1f1.appspot.com/o/1.pdf', pageLayoutMode: PdfPageLayoutMode.single),
+            /*
+            Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
               Text('open result: $_openResult\n'),
@@ -511,7 +540,11 @@ class _testState extends State<test> {
                 child: Text('Tap to open file'),
                 onPressed: _pickFile,
               ),
-            ])));
+                  SfPdfViewer.network(
+                      'https://cdn.syncfusion.com/content/PDFViewer/flutter-succinctly.pdf'),
+            ])
+        */
+            );
   }
 }
 

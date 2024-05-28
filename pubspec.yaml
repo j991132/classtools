@@ -45,6 +45,8 @@ dependencies:
   open_file: ^3.3.2
   permission_handler: ^11.0.1
   file_picker: ^8.0.0+1
+  syncfusion_flutter_pdfviewer: ^24.2.7
+
 
 
 
