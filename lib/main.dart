@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:html' as html;
 import 'dart:html';
 import 'package:just_audio/just_audio.dart';
@@ -456,17 +457,22 @@ class _testState extends State<test> {
   var _openResult = 'Unknown';
 
   void _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['txt'],
+    );
 
     if (result != null) {
       PlatformFile file = result.files.first;
 
       print(file.name);
-      // print(file.bytes);
+      print(utf8.decode(file.bytes!));
       // print(file.size);
       print(file.extension);
-      print(file.path);
-      OpenFile.open(file.path);
+      // print(file.path);
+      _openResult = "utf8.decode(file.bytes!)";
+      print(_openResult);
+      OpenFile.open(utf8.decode(file.bytes!));
     }
 
 /*
