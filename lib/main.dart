@@ -55,6 +55,7 @@ class _LogInState extends State<LogIn> {
   TextEditingController controller = TextEditingController();
   TextEditingController controller2 = TextEditingController();
   TextEditingController controller3 = TextEditingController();
+  bool pdfexist = false;
   var result;
   final db = FirebaseFirestore.instance;
   WebViewController? _webViewController;
@@ -73,14 +74,14 @@ class _LogInState extends State<LogIn> {
           MaterialPageRoute(
               builder: (BuildContext context) => teacherPage(
                   (controller.text + controller2.text).trim(),
-                  controller3.text.trim())));
+                  controller3.text.trim(), pdfexist.toString())));
     } else if (result.data().toString().contains('ok')) {
       await Navigator.push(
           context,
           MaterialPageRoute(
               builder: (BuildContext context) => teacherPage(
                   (controller.text + controller2.text).trim(),
-                  controller3.text.trim())));
+                  controller3.text.trim(), pdfexist.toString())));
     } else {
       showSnackBar(context, Text('학교이름과 방번호를 다시 살펴보세요'));
     }
@@ -118,7 +119,9 @@ class _LogInState extends State<LogIn> {
                   MaterialPageRoute(builder: (BuildContext context) => test()));
             }),
         actions: <Widget>[
-          IconButton(icon: Icon(Icons.search), onPressed: () {})
+          IconButton(icon: Icon(Icons.search), onPressed: () {
+            pdfexist = true;
+          })
         ],
       ),
       // 입력하는 부분을 제외한 화면을 탭하면, 키보드 사라지게 GestureDetector 사용
@@ -239,8 +242,8 @@ void showSnackBar(BuildContext context, Text text) {
 class teacherPage extends StatefulWidget {
   String collectionname = '';
   String teamname = '';
-
-  teacherPage(this.collectionname, this.teamname, {Key? key}) : super(key: key);
+  String pdfexist = '';
+  teacherPage(this.collectionname, this.teamname, this.pdfexist, {Key? key}) : super(key: key);
 
   @override
   State<teacherPage> createState() => _teacherPageState();
@@ -250,6 +253,7 @@ class _teacherPageState extends State<teacherPage> {
   late CollectionReference product;
   final player = AudioPlayer();
   bool _isDialogShowing = false;
+
 
   Future playEffectAudio() async {
     final duration = await player.setAsset("assets/buzzer.wav");
@@ -361,12 +365,31 @@ class _teacherPageState extends State<teacherPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('선생님 페이지'),
+        leading: IconButton(
+            icon: Icon(Icons.menu),
+            onPressed: () {
+              widget.pdfexist='false';
+            }),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(
+              Icons.zoom_in,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              widget.pdfexist='true';
+            },
+          ),
+        ],
       ),
+
       body: StreamBuilder(
         stream: product.orderBy('time', descending: false).snapshots(),
         builder: (BuildContext context,
             AsyncSnapshot<QuerySnapshot> streamSnapshot) {
-          if (streamSnapshot.hasData) {
+          if(widget.pdfexist == 'false'){
+    if (streamSnapshot.hasData) {
+          // if (streamSnapshot.hasData && pdfexist == false) {
             return ListView.builder(
               itemCount: streamSnapshot.data!.docs.length,
               itemBuilder: (context, index) {
@@ -419,20 +442,61 @@ class _teacherPageState extends State<teacherPage> {
                 //    showPopup(context, streamSnapshot.data!.docs[0]['teamname']);
                 //  });
 
-                return Card(
-                  margin:
-                      EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
-                  child: ListTile(
-                    title: Text(documentSnapshot['teamname']),
-                    trailing: SizedBox(
-                      width: 100,
-                    ),
-                  ),
-                );
+  return Card(
+    margin:
+    EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
+    child: ListTile(
+      title: Text(documentSnapshot['teamname']),
+      trailing: SizedBox(
+        width: 100,
+      ),
+    ),
+  );
+},
+
                 // showPopup(context, documentSnapshot['teamname'].toString());
-              },
+
             );
           }
+          }
+          //pdfexist true 일경우
+
+          else{
+            if (_isDialogShowing == false) {
+              WidgetsBinding.instance!.addPostFrameCallback((_) {
+                showPopup(
+                  // context, streamSnapshot.data!.docs[0]['teamname'], documentSnapshot.id);
+                    context,
+                    streamSnapshot.data!.docs[0]['teamname']);
+              });
+              // _isDialogShowing = true; // set it `false` since dialog is closed
+            }
+            return Scaffold(
+              appBar: AppBar(
+                title: Text('뷰 테스트'),
+                actions: <Widget>[
+                  IconButton(
+                    icon: Icon(
+                      Icons.zoom_in,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      // _pdfViewerController.zoomLevel = 0.5;
+                    },
+                  ),
+                ],
+              ),
+
+              body:
+//pdf 한페이지씩 보기
+              SfPdfViewer.asset('1.pdf', pageLayoutMode: PdfPageLayoutMode.single ),
+
+
+              // SfPdfViewer.network('https://firebasestorage.googleapis.com/v0/b/classtools-9d1f1.appspot.com/o/1.pdf', pageLayoutMode: PdfPageLayoutMode.single),
+
+            );
+          };
+
           return Center(child: CircularProgressIndicator());
         },
       ),
@@ -457,7 +521,7 @@ class test extends StatefulWidget {
 
 class _testState extends State<test> {
   var _openResult = 'Unknown';
-  final GlobalKey<SfPdfViewerState> _pdfViewerKey = GlobalKey();
+
   late PdfViewerController _pdfViewerController;
   void _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -508,7 +572,7 @@ class _testState extends State<test> {
 
   Widget build(BuildContext context) {
 
-    _pdfViewerController.zoomLevel = 3;
+    // _pdfViewerController.zoomLevel = 3;
     return Scaffold(
         appBar: AppBar(
           title: Text('뷰 테스트'),
@@ -526,7 +590,7 @@ class _testState extends State<test> {
         ),
 
         body:
-
+//pdf 한페이지씩 보기
         SfPdfViewer.asset('1.pdf', pageLayoutMode: PdfPageLayoutMode.single ),
 
 
