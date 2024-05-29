@@ -492,7 +492,7 @@ class _teacherPageState extends State<teacherPage> {
               SfPdfViewer.asset('1.pdf', pageLayoutMode: PdfPageLayoutMode.single ),
 
 
-              // SfPdfViewer.network('https://firebasestorage.googleapis.com/v0/b/classtools-9d1f1.appspot.com/o/1.pdf', pageLayoutMode: PdfPageLayoutMode.single),
+              // SfPdfViewer.network('https://github.com/j991132/classtools/blob/master/assets/1.pdf', pageLayoutMode: PdfPageLayoutMode.single),
 
             );
           };
