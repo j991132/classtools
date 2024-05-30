@@ -489,9 +489,9 @@ class _teacherPageState extends State<teacherPage> {
 
               body:
 //pdf 한페이지씩 보기
-              SfPdfViewer.asset('1.pdf', pageLayoutMode: PdfPageLayoutMode.single ),
+//               SfPdfViewer.asset('1.pdf', pageLayoutMode: PdfPageLayoutMode.single ),
 
-
+                SfPdfViewer.network('https://pub-9c2cd5cd1ec6403eb4d2d4cc881b3049.r2.dev/1.pdf', pageLayoutMode: PdfPageLayoutMode.single),
               // SfPdfViewer.network('https://github.com/j991132/classtools/blob/master/assets/1.pdf', pageLayoutMode: PdfPageLayoutMode.single),
 
             );
