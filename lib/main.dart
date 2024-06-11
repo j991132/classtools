@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:html' as html;
 import 'dart:html';
+import 'package:flutter/cupertino.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -55,6 +56,7 @@ class _LogInState extends State<LogIn> {
   TextEditingController controller = TextEditingController();
   TextEditingController controller2 = TextEditingController();
   TextEditingController controller3 = TextEditingController();
+  TextEditingController controller4 = TextEditingController();
   bool pdfexist = false;
   var result;
   final db = FirebaseFirestore.instance;
@@ -115,13 +117,22 @@ class _LogInState extends State<LogIn> {
         leading: IconButton(
             icon: Icon(Icons.menu),
             onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (BuildContext context) => test()));
+              // Navigator.push(context,
+              //     MaterialPageRoute(builder: (BuildContext context) => test()));
             }),
-        actions: <Widget>[
-          IconButton(icon: Icon(Icons.search), onPressed: () {
-            pdfexist = true;
-          })
+
+        actions:
+
+        <Widget>[
+
+          /*
+          TextField(
+            controller: controller3,
+            decoration: InputDecoration(labelText: 'URL',hintText: "url",),
+            keyboardType: TextInputType.text,),
+          */
+
+
         ],
       ),
       // 입력하는 부분을 제외한 화면을 탭하면, 키보드 사라지게 GestureDetector 사용
@@ -132,6 +143,31 @@ class _LogInState extends State<LogIn> {
         child: SingleChildScrollView(
           child: Column(
             children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+
+                Container(
+                  alignment: Alignment.centerRight,
+                width: MediaQuery.of(context).size.width*0.2,
+
+                child: TextField(
+                  controller: controller4,
+                  decoration: InputDecoration(labelText: 'URL',hintText: "url",),
+                  keyboardType: TextInputType.text,),
+              ),
+            IconButton(icon: Icon(Icons.picture_as_pdf_sharp), tooltip: 'PDF'
+                ,onPressed: () {
+              // pdfexist = true;
+            }
+            ),
+            Switch(value: pdfexist, onChanged: (value){
+              print(value);
+              pdfexist=value;
+            })
+          ],),
+
+
               Padding(padding: EdgeInsets.only(top: 50)),
               Center(
                 child: Image(
@@ -154,18 +190,18 @@ class _LogInState extends State<LogIn> {
                           TextField(
                             controller: controller,
                             autofocus: true,
-                            decoration: InputDecoration(labelText: '학교이름',hintText: "대화초"),
+                            decoration: InputDecoration(labelText: '학교이름',hintText: "(예) 대화초"),
                             keyboardType: TextInputType.text,
                           ),
                           TextField(
                             controller: controller2,
-                            decoration: InputDecoration(labelText: '방번호',hintText: "1234"),
+                            decoration: InputDecoration(labelText: '방번호',hintText: "(예) 1234"),
                             keyboardType: TextInputType.number,
                             // obscureText: true, // 비밀번호 안보이도록 하는 것
                           ),
                           TextField(
                             controller: controller3,
-                            decoration: InputDecoration(labelText: '모둠이름',hintText: "1모둠, 본인이름 등"),
+                            decoration: InputDecoration(labelText: '모둠이름',hintText: "(예) 1모둠, 본인이름 등"),
                             keyboardType: TextInputType.text,
                             // obscureText: true, // 비밀번호 안보이도록 하는 것
                           ),
@@ -364,7 +400,7 @@ class _teacherPageState extends State<teacherPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('선생님 페이지'),
+        title: Text('QUIZ? 퀴즈!'),
         leading: IconButton(
             icon: Icon(Icons.menu),
             onPressed: () {
@@ -472,20 +508,6 @@ class _teacherPageState extends State<teacherPage> {
               // _isDialogShowing = true; // set it `false` since dialog is closed
             }
             return Scaffold(
-              appBar: AppBar(
-                title: Text('뷰 테스트'),
-                actions: <Widget>[
-                  IconButton(
-                    icon: Icon(
-                      Icons.zoom_in,
-                      color: Colors.white,
-                    ),
-                    onPressed: () {
-                      // _pdfViewerController.zoomLevel = 0.5;
-                    },
-                  ),
-                ],
-              ),
 
               body:
 //pdf 한페이지씩 보기
