@@ -76,14 +76,14 @@ class _LogInState extends State<LogIn> {
           MaterialPageRoute(
               builder: (BuildContext context) => teacherPage(
                   (controller.text + controller2.text).trim(),
-                  controller3.text.trim(), pdfexist.toString())));
+                  controller3.text.trim(), pdfexist.toString(),controller4.text.trim() )));
     } else if (result.data().toString().contains('ok')) {
       await Navigator.push(
           context,
           MaterialPageRoute(
               builder: (BuildContext context) => teacherPage(
                   (controller.text + controller2.text).trim(),
-                  controller3.text.trim(), pdfexist.toString())));
+                  controller3.text.trim(), pdfexist.toString(),controller4.text.trim())));
     } else {
       showSnackBar(context, Text('학교이름과 방번호를 다시 살펴보세요'));
     }
@@ -163,7 +163,10 @@ class _LogInState extends State<LogIn> {
             ),
             Switch(value: pdfexist, onChanged: (value){
               print(value);
-              pdfexist=value;
+              setState(() {
+                pdfexist=value;
+              });
+
             })
           ],),
 
@@ -279,7 +282,8 @@ class teacherPage extends StatefulWidget {
   String collectionname = '';
   String teamname = '';
   String pdfexist = '';
-  teacherPage(this.collectionname, this.teamname, this.pdfexist, {Key? key}) : super(key: key);
+  String url = '';
+  teacherPage(this.collectionname, this.teamname, this.pdfexist, this.url, {Key? key}) : super(key: key);
 
   @override
   State<teacherPage> createState() => _teacherPageState();
@@ -513,9 +517,9 @@ class _teacherPageState extends State<teacherPage> {
 //pdf 한페이지씩 보기
 //               SfPdfViewer.asset('1.pdf', pageLayoutMode: PdfPageLayoutMode.single ),
 
-                SfPdfViewer.network('https://pub-9c2cd5cd1ec6403eb4d2d4cc881b3049.r2.dev/1.pdf', pageLayoutMode: PdfPageLayoutMode.single),
+                SfPdfViewer.network(widget.url, pageLayoutMode: PdfPageLayoutMode.single),
               // SfPdfViewer.network('https://github.com/j991132/classtools/blob/master/assets/1.pdf', pageLayoutMode: PdfPageLayoutMode.single),
-
+            //'https://pub-9c2cd5cd1ec6403eb4d2d4cc881b3049.r2.dev/1.pdf'
             );
           };
 
