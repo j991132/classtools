@@ -21,6 +21,7 @@ class _LogInState extends State<LogIn> {
   var result;
   final db = FirebaseFirestore.instance;
   WebViewController? _webViewController;
+  int _selectedValue = 1;
 
   //컬렉션 이름확인->교사용 페이지 이동 메서드
   gototeacherpage(String collectionname) async {
@@ -52,9 +53,9 @@ class _LogInState extends State<LogIn> {
   //컬렉션 이름확인->학생용 부저페이지 이동 메서드
   confirmcollection(String collectionname) async {
     result = await db.collection(collectionname).doc('connect').get();
-    print(collectionname);
+    print("컬렉션네임"+collectionname);
     print(result.data());
-    if (result.data() != null) {
+    if (result.data() != null && controller3.text.trim() !="") {
       await Navigator.push(
           context,
           MaterialPageRoute(
@@ -62,7 +63,7 @@ class _LogInState extends State<LogIn> {
                   (controller.text + controller2.text).trim(),
                   controller3.text.trim())));
     } else {
-      showSnackBar(context, Text('학교이름과 방번호를 다시 살펴보세요'));
+      showSnackBar(context, Text('학교이름과 방번호 또는 모둠이름을 다시 살펴보세요'));
     }
   } // 컬렉션이름 확인 메서드 끝
 
@@ -138,6 +139,63 @@ class _LogInState extends State<LogIn> {
                   width: 170.0,
                 ),
               ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.lightBlueAccent,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.blue,
+                      width: 2
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  width: MediaQuery.of(context).size.width*0.15,
+                  child:
+                  RadioListTile<int>(
+                    title: Text('참가자'),
+                    value: 1,
+                    groupValue: _selectedValue,
+                    onChanged: (int? value) {
+                      setState(() {
+                        _selectedValue = value!;
+                      });
+                    },
+                    activeColor: Colors.red,
+                  ),
+                ),
+SizedBox(width:5),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.tealAccent,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                        color: Colors.teal,
+                        width: 2
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  width: MediaQuery.of(context).size.width*0.15,
+                  child:
+                  RadioListTile<int>(
+                  title: Text('출제자'),
+                  value: 2,
+                  groupValue: _selectedValue,
+                  onChanged: (int? value) {
+                    setState(() {
+                      _selectedValue = value!;
+                    });
+                  },
+                    activeColor: Colors.red,
+                ),
+                ),
+
+              ],
+            ),
+
+
               Form(
                   child: Theme(
                     data: ThemeData(
@@ -153,18 +211,21 @@ class _LogInState extends State<LogIn> {
                               TextField(
                                 controller: controller,
                                 autofocus: true,
-                                decoration: InputDecoration(labelText: '학교이름',hintText: "(예) 대화초"),
+                                decoration: InputDecoration(labelText: '학교이름',hintText: "(예) 대화초",hintStyle: TextStyle(
+                                  color: Colors.pink,),),
                                 keyboardType: TextInputType.text,
                               ),
                               TextField(
                                 controller: controller2,
-                                decoration: InputDecoration(labelText: '방번호',hintText: "(예) 1234"),
+                                decoration: InputDecoration(labelText: '방번호',hintText: "(예) 1234",hintStyle: TextStyle(
+                                  color: Colors.pink,),),
                                 keyboardType: TextInputType.number,
                                 // obscureText: true, // 비밀번호 안보이도록 하는 것
                               ),
                               TextField(
                                 controller: controller3,
-                                decoration: InputDecoration(labelText: '모둠이름',hintText: "(예) 1모둠, 본인이름 등"),
+                                decoration: InputDecoration(labelText: '모둠이름',hintText: "(예) 1모둠, 본인이름 등",hintStyle: TextStyle(
+                                  color: Colors.pink,),),
                                 keyboardType: TextInputType.text,
                                 // obscureText: true, // 비밀번호 안보이도록 하는 것
                               ),
@@ -176,7 +237,8 @@ class _LogInState extends State<LogIn> {
                                   height: 50.0,
                                   child: ElevatedButton(
                                     onPressed: () {
-                                      if (controller3.text.contains("t")) {
+                                      if(_selectedValue == 2){
+                                      // if (controller3.text.contains("t")) {
                                         gototeacherpage(
                                             (controller.text + controller2.text)
                                                 .trim());
