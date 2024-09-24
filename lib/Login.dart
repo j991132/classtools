@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import 'QuizBuzzer.dart';
-import 'TeacherPage.dart';
+import 'TeacherPage.dart';  // 파일 이름이 TeacherPage.dart라고 가정
 import 'main.dart';
 import 'util.dart';
 
@@ -35,14 +35,14 @@ class _LogInState extends State<LogIn> {
       await Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (BuildContext context) => teacherPage(
+              builder: (BuildContext context) => TeacherPage(
                   (controller.text + controller2.text).trim(),
                   controller3.text.trim(), pdfexist.toString(),controller4.text.trim() )));
     } else if (result.data().toString().contains('ok')) {
       await Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (BuildContext context) => teacherPage(
+              builder: (BuildContext context) => TeacherPage(
                   (controller.text + controller2.text).trim(),
                   controller3.text.trim(), pdfexist.toString(),controller4.text.trim())));
     } else {
@@ -69,6 +69,8 @@ class _LogInState extends State<LogIn> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
     return Scaffold(
       appBar: AppBar(
         title: Text('Class Tools'),
@@ -139,61 +141,15 @@ class _LogInState extends State<LogIn> {
                   width: 170.0,
                 ),
               ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.lightBlueAccent,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Colors.blue,
-                      width: 2
-                    ),
-                  ),
-                  alignment: Alignment.center,
-                  width: MediaQuery.of(context).size.width*0.15,
-                  child:
-                  RadioListTile<int>(
-                    title: Text('참가자'),
-                    value: 1,
-                    groupValue: _selectedValue,
-                    onChanged: (int? value) {
-                      setState(() {
-                        _selectedValue = value!;
-                      });
-                    },
-                    activeColor: Colors.red,
-                  ),
-                ),
-SizedBox(width:5),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.tealAccent,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                        color: Colors.teal,
-                        width: 2
-                    ),
-                  ),
-                  alignment: Alignment.center,
-                  width: MediaQuery.of(context).size.width*0.15,
-                  child:
-                  RadioListTile<int>(
-                  title: Text('출제자'),
-                  value: 2,
-                  groupValue: _selectedValue,
-                  onChanged: (int? value) {
-                    setState(() {
-                      _selectedValue = value!;
-                    });
-                  },
-                    activeColor: Colors.red,
-                ),
-                ),
-
-              ],
-            ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildRadioButton('참가자', 1, isSmallScreen),
+                  SizedBox(width: 10),
+                  _buildRadioButton('출제자', 2, isSmallScreen),
+                ],
+              ),
 
 
               Form(
@@ -283,6 +239,42 @@ SizedBox(width:5),
             ],
           ),
         ),
+      ),
+    );
+  }
+  Widget _buildRadioButton(String title, int value, bool isSmallScreen) {
+    return Container(
+      decoration: BoxDecoration(
+        color: value == 1 ? Colors.lightBlueAccent : Colors.tealAccent,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+            color: value == 1 ? Colors.blue : Colors.teal,
+            width: 2
+        ),
+      ),
+      width: isSmallScreen ? 80 : 120,
+      height: isSmallScreen ? 80 : 100,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Radio<int>(
+            value: value,
+            groupValue: _selectedValue,
+            onChanged: (int? newValue) {
+              setState(() {
+                _selectedValue = newValue!;
+              });
+            },
+            activeColor: Colors.red,
+          ),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: isSmallScreen ? 12 : 14,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
