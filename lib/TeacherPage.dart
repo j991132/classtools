@@ -77,8 +77,8 @@ class _TeacherPageState extends State<TeacherPage> {
               children: [
                 AutoSizeText(
                   teamName,
-                  style: const TextStyle(
-                    fontSize: 50,
+                  style: TextStyle(
+                    fontSize: MediaQuery.of(context).size.width,
                     color: Colors.redAccent,
                     fontWeight: FontWeight.bold,
                   ),
