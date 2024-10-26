@@ -1,11 +1,12 @@
 import 'dart:async';
-
+import 'package:flutter/services.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'package:flutter/foundation.dart';
 
 class TeacherPage extends StatefulWidget {
   final String collectionName;
@@ -26,6 +27,7 @@ class _TeacherPageState extends State<TeacherPage> {
   late PlatformFile _resultFile;
   bool _showPdf = false;
   bool _hasShownFirstTeam = false;
+  late PdfViewerController _pdfViewerController;
 
   @override
   void initState() {
@@ -35,6 +37,7 @@ class _TeacherPageState extends State<TeacherPage> {
         .doc('connect')
         .collection('teams');
     _initAudioPlayer();
+    _pdfViewerController = PdfViewerController();
   }
 
   Future<void> _initAudioPlayer() async {
@@ -144,7 +147,22 @@ class _TeacherPageState extends State<TeacherPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return RawKeyboardListener(
+        focusNode: FocusNode(),
+    autofocus: true,
+    onKey: (RawKeyEvent event) {
+      if (event is RawKeyDownEvent) {
+        if (event.logicalKey == LogicalKeyboardKey.pageDown ||
+            event.logicalKey == LogicalKeyboardKey.enter ||
+            event.logicalKey == LogicalKeyboardKey.space) {
+          _pdfViewerController.nextPage();
+        } else if (event.logicalKey == LogicalKeyboardKey.pageUp ||
+            event.logicalKey == LogicalKeyboardKey.backspace) {
+          _pdfViewerController.previousPage();
+        }
+      }
+    },
+    child: Scaffold(
       appBar: AppBar(
         title: const Text('QUIZ? 퀴즈!'),
         actions: <Widget>[
@@ -167,9 +185,13 @@ class _TeacherPageState extends State<TeacherPage> {
             return _buildTeamList(snapshot.data!.docs);
 
           }else if(_showPdf) {
-            return SfPdfViewer.memory(_resultFile!.bytes!, pageLayoutMode: PdfPageLayoutMode.single);
+            return SfPdfViewer.memory(_resultFile!.bytes!, pageLayoutMode: PdfPageLayoutMode.single,
+                controller: _pdfViewerController,  // 컨트롤러 추가
+                );
           } else if (widget.pdfExists == 'true') {
-            return SfPdfViewer.network(widget.url, pageLayoutMode: PdfPageLayoutMode.single);
+            return SfPdfViewer.network(widget.url, pageLayoutMode: PdfPageLayoutMode.single,
+              controller: _pdfViewerController,  // 컨트롤러 추가
+            );
           }
           else if (snapshot.hasError) {
             return Center(child: Text('오류 발생: ${snapshot.error}'));
@@ -193,7 +215,9 @@ class _TeacherPageState extends State<TeacherPage> {
         onPressed: _deleteAllTeams,
         child: const Icon(Icons.close),
       ),
+    ),
     );
+
   }
 
   Widget _buildPdfViewer() {
