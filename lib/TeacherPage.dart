@@ -73,20 +73,24 @@ class _TeacherPageState extends State<TeacherPage> {
         return Dialog(
           child: Container(
             width: MediaQuery.of(context).size.width * 0.8,
-            height: MediaQuery.of(context).size.width * 0.6,
+            height: MediaQuery.of(context).size.height * 0.6,
             padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                AutoSizeText(
+                Flexible(child: AutoSizeText(
                   teamName,
                   style: TextStyle(
-                    fontSize: MediaQuery.of(context).size.width,
+                    fontSize: MediaQuery.of(context).size.height,
                     color: Colors.redAccent,
                     fontWeight: FontWeight.bold,
                   ),
+                  // minFontSize: 20,  // 최소 폰트 크기
+                  maxFontSize: 500, // 최대 폰트 크기
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                )
+
                 ),
                 ElevatedButton.icon(
                   onPressed: () => _closePopupAndDeleteAll(context),
@@ -176,6 +180,9 @@ class _TeacherPageState extends State<TeacherPage> {
       body: StreamBuilder<QuerySnapshot>(
         stream: _teamsCollection.orderBy('time', descending: false).snapshots(),
         builder: (context, snapshot) {
+          if (!snapshot.hasData || snapshot.data == null) {  // null 체크 추가
+            return const Center(child: CircularProgressIndicator());
+          }
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!_isDialogShowing && !_hasShownFirstTeam && snapshot.data!.docs.isNotEmpty) {
               _showPopup(context, snapshot.data!.docs[0]['teamname'] as String);

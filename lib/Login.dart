@@ -23,6 +23,14 @@ class _LogInState extends State<LogIn> {
   WebViewController? _webViewController;
   int _selectedValue = 1;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showHelpDialog(context);
+    });
+  }
+
   //컬렉션 이름확인->교사용 페이지 이동 메서드
   gototeacherpage(String collectionname) async {
     result = await db.collection(collectionname).doc('connect').get();
@@ -65,7 +73,63 @@ class _LogInState extends State<LogIn> {
     } else {
       showSnackBar(context, Text('학교이름과 방번호 또는 모둠이름을 다시 살펴보세요'));
     }
-  } // 컬렉션이름 확인 메서드 끝
+  }// 컬렉션이름 확인 메서드 끝
+
+  // Login.dart에 메서드 추가
+  void _showHelpDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black54, // 반투명 배경
+      barrierDismissible: false, // 배경 터치로 닫히지 않도록 설정
+      builder: (context) => Dialog(
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '퀴즈 부저 사용방법',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  Text('1. 출제자: 출제자 버튼 체크 -> 학교이름, 방번호를 입력 -> 화살표를 눌러 퀴즈방 생성'),
+                  Text('2. 참가자: 출제자가 알려주는 학교이름, 방번호, 모둠이름을 모두 입력 -> 화살표 눌러 퀴즈방 입장'),
+                  Text('3. 먼저 누른 사람만 출제자의 화면에 이름이 보임'),
+                  Text('4. 화면에 이름이 사라져야 다시 부저 누르기 가능'),
+                ],
+              ),
+            ),
+            Positioned(
+              right: -10,
+              top: -10,
+              child: IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: Container(
+                  padding: EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.close,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +151,10 @@ class _LogInState extends State<LogIn> {
         actions:
 
         <Widget>[
-
+          IconButton(
+            icon: Icon(Icons.help_outline),
+            onPressed: () => _showHelpDialog(context),
+          ),
           /*
           TextField(
             controller: controller3,
