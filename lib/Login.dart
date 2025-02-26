@@ -22,6 +22,8 @@ class _LogInState extends State<LogIn> {
   final db = FirebaseFirestore.instance;
   WebViewController? _webViewController;
   int _selectedValue = 1;
+  // 모둠이름 입력창 표시 여부 (기본값: true - 참가자 모드일 때 보이게)
+  bool _showTeamNameField = true;
 
   @override
   void initState() {
@@ -29,6 +31,17 @@ class _LogInState extends State<LogIn> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _showHelpDialog(context);
     });
+  }
+
+  // Radio 버튼 선택 시 호출될 메서드 - 기존의 Radio onChanged 대신 사용
+  void _handleRadioValueChanged(int? value) {
+    if (value != null) {
+      setState(() {
+        _selectedValue = value;
+        // 출제자(2)를 선택하면 모둠이름 입력창 숨김, 참가자(1)를 선택하면 표시
+        _showTeamNameField = value == 1;
+      });
+    }
   }
 
   //컬렉션 이름확인->교사용 페이지 이동 메서드
@@ -243,15 +256,16 @@ class _LogInState extends State<LogIn> {
                                 decoration: InputDecoration(labelText: '방번호',hintText: "(예) 1234",hintStyle: TextStyle(
                                   color: Colors.pink,),),
                                 keyboardType: TextInputType.number,
-                                // obscureText: true, // 비밀번호 안보이도록 하는 것
                               ),
-                              TextField(
-                                controller: controller3,
-                                decoration: InputDecoration(labelText: '모둠이름',hintText: "(예) 1모둠, 본인이름 등",hintStyle: TextStyle(
-                                  color: Colors.pink,),),
-                                keyboardType: TextInputType.text,
-                                // obscureText: true, // 비밀번호 안보이도록 하는 것
-                              ),
+                              // 모둠이름 입력창을 조건부로 표시
+                              if (_showTeamNameField)
+                                TextField(
+                                  controller: controller3,
+                                  decoration: InputDecoration(labelText: '모둠이름',hintText: "(예) 1모둠, 본인이름 등",hintStyle: TextStyle(
+                                    color: Colors.pink,),),
+                                  keyboardType: TextInputType.text,
+                                ),
+                              // obscureText: true, // 비밀번호 안보이도록 하는 것
                               SizedBox(
                                 height: 40.0,
                               ),
@@ -327,11 +341,7 @@ class _LogInState extends State<LogIn> {
           Radio<int>(
             value: value,
             groupValue: _selectedValue,
-            onChanged: (int? newValue) {
-              setState(() {
-                _selectedValue = newValue!;
-              });
-            },
+            onChanged: _handleRadioValueChanged, // 기존 inline 함수 대신 별도 메서드 사용
             activeColor: Colors.red,
           ),
           Text(
