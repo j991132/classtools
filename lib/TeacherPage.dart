@@ -52,7 +52,12 @@ class _TeacherPageState extends State<TeacherPage> {
 
   Future<void> _initAudioPlayer() async {
     try {
-      await _player.setAsset(_buzzerSoundFiles[_selectedBuzzerSound - 1]);
+      // 웹 환경에서도 초기화 시점에 오디오 파일을 미리 로드
+      String audioPath = kIsWeb
+          ? 'assets/${_buzzerSoundFiles[_selectedBuzzerSound - 1]}'
+          : _buzzerSoundFiles[_selectedBuzzerSound - 1];
+      await _player.setAsset(audioPath);
+      // await _player.setAsset(_buzzerSoundFiles[_selectedBuzzerSound - 1]);
     } catch (e) {
       print("오디오 파일 로드 실패: $e");
     }
@@ -63,7 +68,12 @@ class _TeacherPageState extends State<TeacherPage> {
     try {
       _selectedBuzzerSound = soundIndex;
       // 'assets/' 접두사 제거
-      await _player.setAsset(_buzzerSoundFiles[_selectedBuzzerSound - 1]);
+
+      String audioPath = kIsWeb
+          ? 'assets/${_buzzerSoundFiles[_selectedBuzzerSound - 1]}'
+          : _buzzerSoundFiles[_selectedBuzzerSound - 1];
+
+      await _player.setAsset(audioPath);
     } catch (e) {
       print("효과음 변경 실패: $e");
     }
@@ -72,6 +82,8 @@ class _TeacherPageState extends State<TeacherPage> {
 
   Future<void> _playEffectAudio() async {
     try {
+      // 웹 환경에서는 오디오 컨텍스트 활성화를 위해 사용자 상호작용이 필요할 수 있음
+      // 따라서 _player.setAsset을 여기서 호출하지 않고, 초기화 시점에 미리 로드하도록 유지
       await _player.stop();
       await _player.seek(Duration.zero);
       await _player.play();
@@ -465,6 +477,7 @@ class _TeacherPageState extends State<TeacherPage> {
 
           // 확인용 로그 추가
           print("문서 개수: ${docs.length}");
+          print("리스트: ${docs}");
           if (docs.isNotEmpty) {
             for (int i = 0; i < docs.length; i++) {
               print("팀 ${i+1}: ${docs[i]['teamname']}");
