@@ -25,12 +25,14 @@ class TeacherPage extends StatefulWidget {
 class _TeacherPageState extends State<TeacherPage> {
   late CollectionReference _teamsCollection;
   final AudioPlayer _player = AudioPlayer();
-  final GlobalKey<_ResultDialogState> _dialogKey = GlobalKey<_ResultDialogState>();
+  // _dialogKey 변수 제거
+// final GlobalKey<_ResultDialogState> _dialogKey = GlobalKey<_ResultDialogState>();
   bool _isDialogShowing = false;
+  bool _isClosingDialog = false; // 새 플래그
   late Timer? _popupTimer;
   late PlatformFile _resultFile;
   bool _showPdf = false;
-  bool _hasShownFirstTeam = false;
+
   late PdfViewerController _pdfViewerController;
   int _dialogDisplayTime = 3; // 기본값 3초
   List<int> _displayTimeOptions = [0, 1, 3, 5, 7, 10]; // 0은 '닫기버튼'을 의미
@@ -49,7 +51,7 @@ class _TeacherPageState extends State<TeacherPage> {
     _pdfViewerController = PdfViewerController();
     _popupTimer = null;
   }
-
+/*
   Future<void> _initAudioPlayer() async {
     try {
       // 웹 환경에서도 초기화 시점에 오디오 파일을 미리 로드
@@ -78,7 +80,7 @@ class _TeacherPageState extends State<TeacherPage> {
       print("효과음 변경 실패: $e");
     }
   }
-
+ */
 
   Future<void> _playEffectAudio() async {
     try {
@@ -92,6 +94,37 @@ class _TeacherPageState extends State<TeacherPage> {
     }
   }
 
+
+  Future<void> _initAudioPlayer() async {
+    try {
+      if (_selectedBuzzerSound < 1 || _selectedBuzzerSound > _buzzerSoundFiles.length) {
+        _selectedBuzzerSound = 1; // 기본값으로 재설정
+      }
+      String audioPath = kIsWeb
+          ? 'assets/${_buzzerSoundFiles[_selectedBuzzerSound - 1]}'
+          : _buzzerSoundFiles[_selectedBuzzerSound - 1];
+      await _player.setAsset(audioPath);
+    } catch (e) {
+      print("오디오 파일 로드 실패: $e");
+    }
+  }
+
+  Future<void> _changeBuzzerSound(int soundIndex) async {
+    try {
+      if (soundIndex < 1 || soundIndex > _buzzerSoundFiles.length) {
+        print("유효하지 않은 사운드 인덱스: $soundIndex");
+        return;
+      }
+      _selectedBuzzerSound = soundIndex;
+      String audioPath = kIsWeb
+          ? 'assets/${_buzzerSoundFiles[_selectedBuzzerSound - 1]}'
+          : _buzzerSoundFiles[_selectedBuzzerSound - 1];
+      await _player.setAsset(audioPath);
+    } catch (e) {
+      print("효과음 변경 실패: $e");
+    }
+  }
+  /*
   void _showPopup(BuildContext context, String teamName, {List<QueryDocumentSnapshot>? documents}) {
     if (_isDialogShowing || _hasShownFirstTeam) return;
 
@@ -273,7 +306,8 @@ class _TeacherPageState extends State<TeacherPage> {
 
     Timer(const Duration(seconds: 3), () => _closePopupAndDeleteAll(context));
   }
-
+  */
+/*
   void _closePopupAndDeleteAll(BuildContext context) {
     if (_isDialogShowing && Navigator.canPop(context)) {
       Navigator.of(context).pop();
@@ -288,6 +322,27 @@ class _TeacherPageState extends State<TeacherPage> {
     });
   }
 
+ */
+  void _closePopupAndDeleteAll(BuildContext context) {
+    if (!_isDialogShowing) return;
+    print("다이얼로그 닫기 시작");
+    _popupTimer?.cancel();
+    _popupTimer = null;
+    if (Navigator.canPop(context)) {
+      Navigator.of(context).pop();
+    }
+    setState(() {
+      _isDialogShowing = false;
+      _isClosingDialog = true; // 새 플래그 추가
+    });
+    _deleteAllTeams().then((_) {
+      setState(() {
+        _isClosingDialog = false; // 삭제 완료 후 플래그 해제
+      });
+      print("다이얼로그 닫기 완료");
+    });
+  }
+
   // _deleteAllTeams 메서드가 로그인 화면으로 돌아가지 않도록 수정
   Future<void> _deleteAllTeams() async {
     try {
@@ -296,11 +351,9 @@ class _TeacherPageState extends State<TeacherPage> {
           .map((doc) => _teamsCollection.doc(doc.id).delete())
           .toList();
       await Future.wait(deleteFutures);
-      setState(() {
-        _hasShownFirstTeam = false;
-      });
+      print("팀 데이터 삭제 완료: 문서 수=${snapshot.docs.length}");
     } catch (e) {
-      print("팀 데이터 삭제 중 오류 발생: $e");
+      print("팀 데이터 삭제 중 오류: $e");
     }
   }
 
@@ -486,6 +539,7 @@ class _TeacherPageState extends State<TeacherPage> {
 
           // 첫 번째 팀이 등록되었을 때만 다이얼로그 표시
           WidgetsBinding.instance.addPostFrameCallback((_) {
+            /*
             if (docs.isNotEmpty) {
               if (!_isDialogShowing && !_hasShownFirstTeam) {
                 // 처음으로 팀이 등록되었을 때 다이얼로그 표시
@@ -494,6 +548,10 @@ class _TeacherPageState extends State<TeacherPage> {
                 // 다이얼로그가 이미 표시 중이면 데이터만 업데이트
                 _dialogKey.currentState!.updateTeams(docs);
               }
+            }
+            */
+            if (docs.isNotEmpty && !_isDialogShowing && !_isClosingDialog) {
+              _showResultDialog(context, docs);
             }
           });
 
@@ -530,6 +588,7 @@ class _TeacherPageState extends State<TeacherPage> {
   }
 
   // StatefulWidget 다이얼로그 정의
+  /*
   void _showResultDialog(BuildContext context, List<QueryDocumentSnapshot> documents) {
     _playEffectAudio();
     setState(() {
@@ -573,6 +632,40 @@ class _TeacherPageState extends State<TeacherPage> {
           _popupTimer!.cancel();
           _popupTimer = null;
         }
+      });
+    }
+  }
+
+   */
+  void _showResultDialog(BuildContext context, List<QueryDocumentSnapshot> documents) {
+    if (documents.isEmpty || _isDialogShowing || _isClosingDialog) {
+      print("다이얼로그 호출 차단: 문서=${documents.length}, 열림=$_isDialogShowing, 닫는중=$_isClosingDialog");
+      return;
+    }
+    print("다이얼로그 호출: 문서 수=${documents.length}, 상태=$_isDialogShowing, 닫는중=$_isClosingDialog");
+    _playEffectAudio();
+    setState(() {
+      _isDialogShowing = true;
+    });
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return ResultDialog(
+          teams: documents,
+          onClose: () {
+            _closePopupAndDeleteAll(dialogContext);
+          },
+        );
+      },
+    );
+
+    if (_dialogDisplayTime > 0) {
+      _popupTimer?.cancel();
+      _popupTimer = Timer(Duration(seconds: _dialogDisplayTime), () {
+        print("타이머로 다이얼로그 닫힘");
+        _closePopupAndDeleteAll(context);
       });
     }
   }
@@ -630,7 +723,7 @@ class ResultDialog extends StatefulWidget {
   final List<QueryDocumentSnapshot> teams;
   final VoidCallback onClose;
 
-  const ResultDialog({Key? key, required this.teams, required this.onClose}) : super(key: key);
+  const ResultDialog({required this.teams, required this.onClose});
 
   @override
   _ResultDialogState createState() => _ResultDialogState();
@@ -654,19 +747,14 @@ class _ResultDialogState extends State<ResultDialog> {
 
   @override
   Widget build(BuildContext context) {
-    // 1등 팀 정보
-    String firstTeamName = _teams[0]['teamname'] as String;
-
-    // 2등과 3등 정보
+    String firstTeamName = _teams.isNotEmpty ? _teams[0]['teamname'] as String : '';
     String secondTeamName = "";
     String secondTimeDiff = "";
     String thirdTeamName = "";
     String thirdTimeDiff = "";
 
-    // 첫 번째 문서의 시간을 기준 시간으로 설정
-    final Timestamp firstTime = _teams[0]['time'] as Timestamp;
+    final Timestamp firstTime = _teams.isNotEmpty ? _teams[0]['time'] as Timestamp : Timestamp.now();
 
-    // 2등 정보 설정 (문서가 2개 이상일 때)
     if (_teams.length > 1) {
       final Timestamp secondTime = _teams[1]['time'] as Timestamp;
       final int timeDifference = secondTime.millisecondsSinceEpoch - firstTime.millisecondsSinceEpoch;
@@ -674,7 +762,6 @@ class _ResultDialogState extends State<ResultDialog> {
       secondTimeDiff = "+${(timeDifference / 1000.0).toStringAsFixed(2)}초";
     }
 
-    // 3등 정보 설정 (문서가 3개 이상일 때)
     if (_teams.length > 2) {
       final Timestamp thirdTime = _teams[2]['time'] as Timestamp;
       final int timeDifference = thirdTime.millisecondsSinceEpoch - firstTime.millisecondsSinceEpoch;
@@ -714,11 +801,10 @@ class _ResultDialogState extends State<ResultDialog> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  // 2등 정보 박스
                   if (secondTeamName.isNotEmpty)
                     Expanded(
                       child: Container(
-                        height: MediaQuery.of(context).size.height * 0.08, // 높이 고정
+                        height: MediaQuery.of(context).size.height * 0.08,
                         margin: const EdgeInsets.symmetric(horizontal: 5),
                         decoration: BoxDecoration(
                           color: Colors.blue.shade100,
@@ -728,9 +814,8 @@ class _ResultDialogState extends State<ResultDialog> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            // 왼쪽: "2등" 텍스트
                             Container(
-                              width: 40, // 고정 너비
+                              width: 40,
                               margin: EdgeInsets.only(left: 4),
                               decoration: BoxDecoration(
                                 color: Colors.blue.shade200,
@@ -740,14 +825,12 @@ class _ResultDialogState extends State<ResultDialog> {
                               child: Text(
                                 "2등",
                                 style: TextStyle(
-                                  fontSize: 16, // 더 큰 고정 크기
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.blue.shade900,
                                 ),
                               ),
                             ),
-
-                            // 중앙: 팀 이름
                             Expanded(
                               flex: 3,
                               child: Container(
@@ -758,7 +841,7 @@ class _ResultDialogState extends State<ResultDialog> {
                                   child: Text(
                                     secondTeamName,
                                     style: TextStyle(
-                                      fontSize: 100, // 매우 큰 기본 크기 설정
+                                      fontSize: 100,
                                       fontWeight: FontWeight.w900,
                                       color: Colors.black,
                                     ),
@@ -767,10 +850,8 @@ class _ResultDialogState extends State<ResultDialog> {
                                 ),
                               ),
                             ),
-
-                            // 오른쪽: 시간차
                             Container(
-                              width: 70, // 고정 너비
+                              width: 70,
                               margin: EdgeInsets.only(right: 4),
                               decoration: BoxDecoration(
                                 color: Colors.blue.shade50,
@@ -780,7 +861,7 @@ class _ResultDialogState extends State<ResultDialog> {
                               child: Text(
                                 secondTimeDiff,
                                 style: TextStyle(
-                                  fontSize: 16, // 더 큰 고정 크기
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.blue.shade800,
                                 ),
@@ -792,12 +873,10 @@ class _ResultDialogState extends State<ResultDialog> {
                     )
                   else
                     Expanded(child: SizedBox()),
-
-                  // 3등 정보 박스
                   if (thirdTeamName.isNotEmpty)
                     Expanded(
                       child: Container(
-                        height: MediaQuery.of(context).size.height * 0.08, // 높이 고정
+                        height: MediaQuery.of(context).size.height * 0.08,
                         margin: const EdgeInsets.symmetric(horizontal: 5),
                         decoration: BoxDecoration(
                           color: Colors.green.shade100,
@@ -807,9 +886,8 @@ class _ResultDialogState extends State<ResultDialog> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            // 왼쪽: "3등" 텍스트
                             Container(
-                              width: 40, // 고정 너비
+                              width: 40,
                               margin: EdgeInsets.only(left: 4),
                               decoration: BoxDecoration(
                                 color: Colors.green.shade200,
@@ -819,14 +897,12 @@ class _ResultDialogState extends State<ResultDialog> {
                               child: Text(
                                 "3등",
                                 style: TextStyle(
-                                  fontSize: 16, // 더 큰 고정 크기
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.green.shade900,
                                 ),
                               ),
                             ),
-
-                            // 중앙: 팀 이름
                             Expanded(
                               flex: 3,
                               child: Container(
@@ -837,7 +913,7 @@ class _ResultDialogState extends State<ResultDialog> {
                                   child: Text(
                                     thirdTeamName,
                                     style: TextStyle(
-                                      fontSize: 100, // 매우 큰 기본 크기 설정
+                                      fontSize: 100,
                                       fontWeight: FontWeight.w900,
                                       color: Colors.black,
                                     ),
@@ -846,10 +922,8 @@ class _ResultDialogState extends State<ResultDialog> {
                                 ),
                               ),
                             ),
-
-                            // 오른쪽: 시간차
                             Container(
-                              width: 70, // 고정 너비
+                              width: 70,
                               margin: EdgeInsets.only(right: 4),
                               decoration: BoxDecoration(
                                 color: Colors.green.shade50,
@@ -859,7 +933,7 @@ class _ResultDialogState extends State<ResultDialog> {
                               child: Text(
                                 thirdTimeDiff,
                                 style: TextStyle(
-                                  fontSize: 16, // 더 큰 고정 크기
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.green.shade800,
                                 ),
@@ -878,7 +952,7 @@ class _ResultDialogState extends State<ResultDialog> {
               onPressed: widget.onClose,
               icon: const Icon(Icons.close),
               label: const Text('닫기'),
-            )
+            ),
           ],
         ),
       ),
